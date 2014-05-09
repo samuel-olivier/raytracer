@@ -63,6 +63,13 @@ bool Sphere::intersect(const Ray &ray, Intersection &hit)
         hit.material = material();
         hit.normal = (hit.position - _origin) / _radius;
         hit.texCoord = QVector2D((qAtan2(hit.normal.x(), hit.normal.z()) + M_PI) / (2 * M_PI), (qAsin(hit.normal.y()) + M_PI_2) / M_PI);
+        hit.u = QVector3D::crossProduct(config->yAxis(), hit.normal);
+        if (hit.u.length() < Config::Epsilon) {
+            hit.u = config->xAxis();
+        } else {
+            hit.u.normalize();
+        }
+        hit.v = QVector3D::crossProduct(hit.normal, hit.u);
         return true;
     }
     return false;

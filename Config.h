@@ -46,14 +46,19 @@ public:
     int     maximumNodesPerBox() const;
     void    setMaximumNodesPerBox(int maximumNodesPerBox);
 
-    int     maximumRecursionDepth() const;
-    void    setMaximumRecursionDepth(int maximumRecursionDepth);
+    int     pathDepth() const;
+    void    setPathDepth(int pathDepth);
+
+    int     pathSampleNumber() const;
+    void    setPathSampleNumber(int pathSampleNumber);
 
     float   refractionIndex() const;
     void    setRefractionIndex(float refractionIndex);
 
-    int     reflectionSampleNumber() const;
-    void    setReflectionSampleNumber(int reflectionSampleNumber);
+    float       defaultCameraVerticalFOV() const;
+    float       defaultCameraAspectRatio() const;
+    float       defaultCameraAperture() const;
+    float       defaultCameraFocusPlane() const;
 
 private:
     Config();
@@ -72,9 +77,14 @@ private:
     int         _antialiasingResolution;
     int         _maximumNodesPerBox;
     AntialiasingType    _antialiasingType;
-    int         _maximumRecursionDepth;
     float       _refractionIndex;
-    int         _reflectionSampleNumber;
+    int         _pathDepth;
+    int         _pathSampleNumber;
+
+    float       _defaultCameraVerticalFOV;
+    float       _defaultCameraAspectRatio;
+    float       _defaultCameraAperture;
+    float       _defaultCameraFocusPlane;
 };
 
 #endif // CONFIG_H

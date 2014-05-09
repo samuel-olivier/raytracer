@@ -25,7 +25,10 @@ public:
     void    setImageSize(int width, int height);
     QSize imageSize();
 
+    Camera* camera() const;
     void    setCamera(Camera* camera);
+
+    Scene*  scene() const;
     void    setScene(Scene* scene);
 
     void    startRendering();
@@ -41,6 +44,7 @@ public:
 signals:
     void    renderingStarted();
     void    renderingFinished();
+    void    clicked(Intersection hit);
 
 protected:
     void    paintEvent(QPaintEvent *e);

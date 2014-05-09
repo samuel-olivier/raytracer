@@ -30,10 +30,11 @@ SceneGenerator* SceneGenerator::_instance = 0;
 
 SceneGenerator::SceneGenerator()
 {
-    _scenes.append(QPair<QString, Loader>("Project 1.1", &SceneGenerator::_loadProject1_1));
-    _scenes.append(QPair<QString, Loader>("Project 1.2", &SceneGenerator::_loadProject1_2));
-    _scenes.append(QPair<QString, Loader>("Project 2", &SceneGenerator::_loadProject2));
-    _scenes.append(QPair<QString, Loader>("Project 3.1", &SceneGenerator::_loadProject3_1));
+    _scenes.append(QPair<QString, Loader>("Project 1 - Cubes", &SceneGenerator::_loadProject1_Cubes));
+    _scenes.append(QPair<QString, Loader>("Project 1 - Spheres", &SceneGenerator::_loadProject1_Spheres));
+    _scenes.append(QPair<QString, Loader>("Project 2 - 2 Dragons", &SceneGenerator::_loadProject2_2Dragons));
+    _scenes.append(QPair<QString, Loader>("Project 3 - Standard", &SceneGenerator::_loadProject3_Standard));
+    _scenes.append(QPair<QString, Loader>("Project 3 - Focus", &SceneGenerator::_loadProject3_Focus));
 
     _scenes.append(QPair<QString, Loader>("1 Cube / 1 Plane", &SceneGenerator::_loadCube));
     _scenes.append(QPair<QString, Loader>("Teapot", &SceneGenerator::_loadTeapot));
@@ -79,7 +80,7 @@ void SceneGenerator::loadFile(const QString &filename, Renderer *renderer)
     scene->setSkyColor(Color(0.8f, 0.8f, 1.0f));
 
     // Create camera
-    Camera* camera = new Camera;
+    Camera* camera = renderer->camera();
     camera->lookAt(QVector3D(0.0f, 50.0f, 200.0f), QVector3D(0.0f,50.0f,0.0f), config->yAxis());
     camera->set(40.0f, 1.33f);
 
@@ -142,11 +143,11 @@ void SceneGenerator::_loadSceneTest(Renderer *renderer)
     (void)renderer;
 }
 
-void SceneGenerator::_loadProject1_1(Renderer *renderer)
+void SceneGenerator::_loadProject1_Cubes(Renderer *renderer)
 {
     Config::Epsilon = 0.00001f;
 
-    Camera* camera = new Camera();
+    Camera* camera = renderer->camera();
     camera->lookAt(QVector3D(2.0f, 2.0f, 5.0f), QVector3D(0.0f, 0.0f, 0.0f), config->yAxis());
     camera->set(40.0f, 1.33f);
 
@@ -198,11 +199,11 @@ void SceneGenerator::_loadProject1_1(Renderer *renderer)
     renderer->setCamera(camera);
 }
 
-void SceneGenerator::_loadProject1_2(Renderer *renderer)
+void SceneGenerator::_loadProject1_Spheres(Renderer *renderer)
 {
     Config::Epsilon = 0.001f;
 
-    Camera* camera = new Camera;
+    Camera* camera = renderer->camera();
     camera->lookAt(QVector3D(-0.75f, 0.25f, 5.0f), QVector3D(0.0f, 0.5f, 0.0f), config->yAxis());
     camera->set(40.0f, 1.33f);
 
@@ -241,11 +242,11 @@ void SceneGenerator::_loadProject1_2(Renderer *renderer)
     renderer->setCamera(camera);
 }
 
-void SceneGenerator::_loadProject2(Renderer *renderer)
+void SceneGenerator::_loadProject2_2Dragons(Renderer *renderer)
 {
     Config::Epsilon = 0.0001f;
 
-    Camera* camera = new Camera;
+    Camera* camera = renderer->camera();
     camera->lookAt(QVector3D(-0.1f, 0.1f, 0.2f), QVector3D(-0.05f, 0.12f, 0.0f), config->yAxis());
     camera->set(40.0f, 1.33f);
 
@@ -275,7 +276,7 @@ void SceneGenerator::_loadProject2(Renderer *renderer)
 
     Box* ground = new Box;
     LambertMaterial* mat1  = new LambertMaterial;
-    mat1->setDiffuseColor(Color::WHITE);
+    mat1->setDiffuseColor(Color(0.3f, 0.3f, 0.3f));
     ground->set(5.0f, 0.1f, 5.0f);
     ground->setMaterial(mat1);
     scene->addNode(ground);
@@ -302,13 +303,94 @@ void SceneGenerator::_loadProject2(Renderer *renderer)
     renderer->setCamera(camera);
 }
 
-void SceneGenerator::_loadProject3_1(Renderer *renderer)
+void SceneGenerator::_loadProject3_Standard(Renderer *renderer)
 {
     Config::Epsilon = 0.0001f;
 
-    Camera* camera = new Camera;
+    Camera* camera = renderer->camera();
     camera->lookAt(QVector3D(-0.5f, 0.25f, -0.2f), QVector3D(0.0f, 0.15f, -0.15f), config->yAxis());
     camera->set(40.0f, 1.33f);
+
+    Scene* scene = new Scene;
+    scene->setSkyColor(Color(0.8f, 0.9f, 1.0f));
+
+    const int numDragon = 4;
+    AshikhminMaterial* mtls[numDragon];
+
+    // Diffuse
+    mtls[0] = new AshikhminMaterial;
+    mtls[0]->setSpecularLevel(0.0f);
+    mtls[0]->setDiffuseLevel(1.0f);
+    mtls[0]->setDiffuseColor(Color(0.7f,0.7f,0.7f));
+
+    // Roughened copper
+    mtls[1] = new AshikhminMaterial;
+    mtls[1]->setDiffuseLevel(0.0f);
+    mtls[1]->setSpecularLevel(1.0f);
+    mtls[1]->setSpecularColor(Color(0.9f,0.6f,0.5f));
+    mtls[1]->setRoughness(100.0f,100.0f);
+
+    // Anisotropic gold
+    mtls[2] = new AshikhminMaterial;
+    mtls[2]->setDiffuseLevel(0.0f);
+    mtls[2]->setSpecularLevel(1.0f);
+    mtls[2]->setSpecularColor(Color(0.95f,0.7f,0.3f));
+    mtls[2]->setRoughness(1.0f,1000.0f);
+
+    // Red plastic
+    mtls[3] = new AshikhminMaterial;
+    mtls[3]->setDiffuseColor(Color(1.0f,0.1f,0.1f));
+    mtls[3]->setDiffuseLevel(0.8f);
+    mtls[3]->setSpecularLevel(0.2f);
+    mtls[3]->setSpecularColor(Color(1.0f,1.0f,1.0f));
+    mtls[3]->setRoughness(1000.0f,1000.0f);
+
+    AssimpLoader loader;
+    QList<Mesh*> meshes;
+    loader.loadFile1(config->rootDir() + "/Dragon/dragon.ply", meshes);
+    QTime time;
+    time.restart();
+    Mesh* dragon = meshes.first();
+    BoxTreeNode* tree = new BoxTreeNode;
+    tree->construct(dragon);
+    logger->writeInfo(QString("Dragon Tree Construction : %1 ms").arg(QString::number(time.elapsed())));
+
+    QMatrix4x4 mtx;
+    for (int i = 0; i < numDragon; ++i) {
+        Instance* inst=new Instance(tree);
+        mtx.setToIdentity();
+        mtx.translate(0.0f, 0.0f, -0.1f * float(i));
+        inst->setMatrix(mtx);
+        inst->setMaterial(mtls[i]);
+        scene->addNode(inst);
+    }
+
+    Box* ground = new Box;
+    LambertMaterial* groundMat  = new LambertMaterial;
+    groundMat->setDiffuseColor(Color(0.3f, 0.3f, 0.35f));
+    ground->set(2.0f, 0.11f, 2.0f);
+    ground->setMaterial(groundMat);
+    scene->addNode(ground);
+
+    DirectionalLight* sunlgt = new DirectionalLight;
+    sunlgt->setBaseColor(Color(1.0f, 1.0f, 0.9f));
+    sunlgt->setIntensity(1.0f);
+    sunlgt->setDirection(QVector3D(2.0f, -3.0f, -2.0f));
+    scene->addNode(sunlgt);
+
+    renderer->setScene(scene);
+    renderer->setCamera(camera);
+}
+
+void SceneGenerator::_loadProject3_Focus(Renderer *renderer)
+{
+    Config::Epsilon = 0.0001f;
+
+    Camera* camera = renderer->camera();
+    camera->lookAt(QVector3D(-0.2f, 0.12f, 0.25f), QVector3D(0.0f, 0.15f, -0.15f), config->yAxis());
+    camera->set(40.0f, 1.33f);
+    camera->setAperture(0.01f);
+    camera->setFocalPlane(0.29f);
 
     Scene* scene = new Scene;
     scene->setSkyColor(Color(0.8f, 0.9f, 1.0f));
@@ -385,7 +467,7 @@ void SceneGenerator::_loadCube(Renderer *renderer)
 {
     Config::Epsilon = 0.00001f;
 
-    Camera* camera = new Camera;
+    Camera* camera = renderer->camera();
     camera->lookAt(QVector3D(1.0f, 2.0f, 3.0f), QVector3D(0.0f, 0.0f, 0.0f), config->yAxis());
     camera->set(40.0f, 1.33f);
 
@@ -435,7 +517,7 @@ void SceneGenerator::_loadTeapot(Renderer *renderer)
 {
     Config::Epsilon = 0.01f;
 
-    Camera* camera = new Camera;
+    Camera* camera = renderer->camera();
     camera->lookAt(QVector3D(0.0f, 50.0f, 200.0f), QVector3D(0.0f, 50.0f, 0.0f), config->yAxis());
     camera->set(40.0f, 1.33f);
 
@@ -484,7 +566,7 @@ void SceneGenerator::_loadCornelBox(Renderer *renderer)
 {
     Config::Epsilon = 0.00001f;
 
-    Camera* camera = new Camera;
+    Camera* camera = renderer->camera();
     camera->lookAt(QVector3D(0.0f, 0.75f, 3.0f), QVector3D(0.0f, 0.75f, 0.0f), config->yAxis());
     camera->set(40.0f, 1.33f);
 
@@ -544,7 +626,7 @@ void SceneGenerator::_loadCornelDragon(Renderer *renderer)
 {
     Config::Epsilon = 0.001f;
 
-    Camera* camera = new Camera;
+    Camera* camera = renderer->camera();
     camera->lookAt(QVector3D(0.0f, 0.75, 3.0f), QVector3D(0.0f, 0.75f, 0.0f), config->yAxis());
     camera->set(40.0f, 1.33f);
 
@@ -615,7 +697,7 @@ void SceneGenerator::_loadManyDragons(Renderer *renderer)
 {
     Config::Epsilon = 0.00005f;
 
-    Camera* camera = new Camera;
+    Camera* camera = renderer->camera();
     camera->lookAt(QVector3D(0.0f, 0.3f, 0.5f), QVector3D(0.0f, 0.0f, -1.0f), config->yAxis());
     camera->set(40.0f, 1.33f);
 
@@ -738,7 +820,7 @@ void SceneGenerator::_loadManyTeapots(Renderer *renderer)
     scene->addNode(sunlgt);
 
     // Create camera
-    Camera* camera = new Camera();
+    Camera* camera = renderer->camera();
 
     camera->lookAt(QVector3D(0.0f, 10.0f, 20.0f), QVector3D(0.0f, 5.0f, 0.0f), config->yAxis());
     camera->set(40.0f, 800.0f / 600.0f);
@@ -751,7 +833,7 @@ void SceneGenerator::_loadBig(Renderer *renderer)
 {
     Config::Epsilon = 0.01f;
 
-    Camera* camera = new Camera;
+    Camera* camera = renderer->camera();
     camera->lookAt(QVector3D(0.0f, 2.0f, -5.7f), QVector3D(0.0f, 0.0f, 0.0f), config->yAxis());
     camera->set(40.0f, 1.33f);
 

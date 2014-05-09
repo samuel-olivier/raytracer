@@ -3,6 +3,8 @@
 
 #include <QMainWindow>
 
+#include "Intersection.h"
+
 namespace Ui {
 class MainWindow;
 }
@@ -27,6 +29,9 @@ public slots:
     void    onRenderingFinished();
 
     void    onUpdateProgress();
+
+private slots:
+    void    onClick(Intersection hit);
 
 private:
     void    _loadScene(QString const& scene);

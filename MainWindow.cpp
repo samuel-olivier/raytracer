@@ -10,11 +10,19 @@
 #include "Config.h"
 #include "SceneGenerator.h"
 #include "Logger.h"
+#include "Camera.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent), _ui(new Ui::MainWindow), _nextScene(QString::null)
 {
     _ui->setupUi(this);
+
+    Camera* camera = new Camera;
+    camera->set(config->defaultCameraVerticalFOV(), config->defaultCameraAspectRatio());
+    camera->setAperture(config->defaultCameraAperture());
+    camera->setFocalPlane(config->defaultCameraFocusPlane());
+
+    _ui->renderer->setCamera(camera);
     _setConfig();
     _ui->sceneNames->addItems(sceneGenerator->scenes());
     _ui->sceneNames->setCurrentIndex(0);
@@ -33,6 +41,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(_ui->renderer, SIGNAL(renderingFinished()), SLOT(onRenderingFinished()));
     connect(_ui->renderer, SIGNAL(renderingStarted()), SLOT(onRenderingStarted()));
+    connect(_ui->renderer, SIGNAL(clicked(Intersection)), SLOT(onClick(Intersection)));
 
     QTimer* progressTimer = new QTimer(this);
     connect(progressTimer, SIGNAL(timeout()), SLOT(onUpdateProgress()));
@@ -103,13 +112,11 @@ void MainWindow::onLoadScene()
 
 void MainWindow::onRenderingStarted()
 {
-    _ui->configuration->setEnabled(false);
     logger->showMessage("Rendering...");
 }
 
 void MainWindow::onRenderingFinished()
 {
-    _ui->configuration->setEnabled(true);
     logger->writeSuccess(QString("Rendering finished : %1 ms").arg(QString::number(_ui->renderer->elapsedTime())));
     logger->clearMessage();
     if (!_nextScene.isNull()) {
@@ -134,10 +141,20 @@ void MainWindow::onUpdateProgress()
     _ui->sampleDuration->setText(mean.toString("mm:ss.zzz"));
 }
 
+void MainWindow::onClick(Intersection hit)
+{
+    _ui->focalPlane->setValue(hit.position.distanceToPoint(_ui->renderer->camera()->position()));
+}
+
 void MainWindow::_loadScene(const QString &scene)
 {
     sceneGenerator->loadScene(scene, _ui->renderer);
     _nextScene = QString::null;
+    _ui->epsilon->setValue(Config::Epsilon);
+    _ui->verticalFov->setValue(_ui->renderer->camera()->verticalFOV());
+    _ui->aspectRatio->setValue(_ui->renderer->camera()->aspectRatio());
+    _ui->aperture->setValue(_ui->renderer->camera()->aperture());
+    _ui->focalPlane->setValue(_ui->renderer->camera()->focalPlane());
 }
 
 void MainWindow::_loadConfig()
@@ -161,8 +178,14 @@ void MainWindow::_loadConfig()
     }
     config->setAntialiasingType(type);
 
-    config->setMaximumRecursionDepth(_ui->maximumRecursionDepth->value());
+    config->setPathDepth(_ui->pathDepth->value());
+    config->setPathSampleNumber(_ui->pathSampleNumber->value());
     config->setRefractionIndex(_ui->refractionIndex->value());
+
+    Config::Epsilon = _ui->epsilon->value();
+    _ui->renderer->camera()->set(_ui->verticalFov->value(), _ui->aspectRatio->value());
+    _ui->renderer->camera()->setAperture(_ui->aperture->value());
+    _ui->renderer->camera()->setFocalPlane(_ui->focalPlane->value());
 }
 
 void MainWindow::_setConfig()
@@ -190,6 +213,13 @@ void MainWindow::_setConfig()
         }
         _ui->antialiasingType->setCurrentText(v);
     }
-    _ui->maximumRecursionDepth->setValue(config->maximumRecursionDepth());
+    _ui->pathDepth->setValue(config->pathDepth());
+    _ui->pathSampleNumber->setValue(config->pathSampleNumber());
     _ui->refractionIndex->setValue(config->refractionIndex());
+
+    _ui->epsilon->setValue(Config::Epsilon);
+    _ui->verticalFov->setValue(_ui->renderer->camera()->verticalFOV());
+    _ui->aspectRatio->setValue(_ui->renderer->camera()->aspectRatio());
+    _ui->aperture->setValue(_ui->renderer->camera()->aperture());
+    _ui->focalPlane->setValue(_ui->renderer->camera()->focalPlane());
 }

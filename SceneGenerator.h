@@ -30,10 +30,11 @@ private:
 
     void    _loadSceneTest(Renderer* renderer);
 
-    void    _loadProject1_1(Renderer* renderer);
-    void    _loadProject1_2(Renderer* renderer);
-    void    _loadProject2(Renderer* renderer);
-    void    _loadProject3_1(Renderer* renderer);
+    void    _loadProject1_Cubes(Renderer* renderer);
+    void    _loadProject1_Spheres(Renderer* renderer);
+    void    _loadProject2_2Dragons(Renderer* renderer);
+    void    _loadProject3_Standard(Renderer* renderer);
+    void    _loadProject3_Focus(Renderer* renderer);
 
     void    _loadCube(Renderer* renderer);
     void    _loadTeapot(Renderer* renderer);

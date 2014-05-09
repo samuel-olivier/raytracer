@@ -101,14 +101,24 @@ void Config::setMaximumNodesPerBox(int maximumNodesPerBox)
     _maximumNodesPerBox = maximumNodesPerBox;
 }
 
-int Config::maximumRecursionDepth() const
+int Config::pathDepth() const
 {
-    return _maximumRecursionDepth;
+    return _pathDepth;
 }
 
-void Config::setMaximumRecursionDepth(int maximumRecursionDepth)
+void Config::setPathDepth(int pathDepth)
 {
-    _maximumRecursionDepth = maximumRecursionDepth;
+    _pathDepth = pathDepth;
+}
+
+int Config::pathSampleNumber() const
+{
+    return _pathSampleNumber;
+}
+
+void Config::setPathSampleNumber(int pathSampleNumber)
+{
+    _pathSampleNumber = pathSampleNumber;
 }
 
 float Config::refractionIndex() const
@@ -121,14 +131,24 @@ void Config::setRefractionIndex(float refractionIndex)
     _refractionIndex = refractionIndex;
 }
 
-int Config::reflectionSampleNumber() const
+float Config::defaultCameraVerticalFOV() const
 {
-    return _reflectionSampleNumber;
+    return _defaultCameraVerticalFOV;
 }
 
-void Config::setReflectionSampleNumber(int reflectionSampleNumber)
+float Config::defaultCameraAspectRatio() const
 {
-    _reflectionSampleNumber = reflectionSampleNumber;
+    return _defaultCameraAspectRatio;
+}
+
+float Config::defaultCameraAperture() const
+{
+    return _defaultCameraAperture;
+}
+
+float Config::defaultCameraFocusPlane() const
+{
+    return _defaultCameraFocusPlane;
 }
 
 Config::Config()
@@ -142,11 +162,15 @@ Config::Config()
     _renderingTaskNumber = 2000;
     _lightSampleNumber = 2;
     _antialiasingResolution = 1;
-    _antialiasingType = AntialiasingType::Random;
+    _antialiasingType = AntialiasingType::Shirley;
     _maximumNodesPerBox = 10;
-    _maximumRecursionDepth = 5;
+    _pathDepth = 5;
     _refractionIndex = 1.0003f;
-    _reflectionSampleNumber = 1.0f;
+    _pathSampleNumber = 1;
+    _defaultCameraVerticalFOV = 40.0f;
+    _defaultCameraAspectRatio = 1.33f;
+    _defaultCameraAperture = 0.0f;
+    _defaultCameraFocusPlane = 1.0f;
 }
 
 Config::~Config()

@@ -48,9 +48,19 @@ QSize Renderer::imageSize()
     return res;
 }
 
+Camera *Renderer::camera() const
+{
+    return _camera;
+}
+
 void Renderer::setCamera(Camera *camera)
 {
     _camera = camera;
+}
+
+Scene *Renderer::scene() const
+{
+    return _scene;
 }
 
 void Renderer::setScene(Scene *scene)
@@ -140,11 +150,11 @@ void Renderer::mouseReleaseEvent(QMouseEvent *e)
     if (rect.contains(e->pos())) {
         Intersection    hit;
         Ray             ray;
-        _camera->ray(float(e->pos().x() - rect.left() + 0.5f) / rect.width(), -float(e->pos().y() - rect.top() + 0.5f) / rect.height(), ray);
+
+        ray.depth = config->pathDepth();
+        _camera->notSampledRay(float(e->pos().x() - rect.left() + 0.5f) / rect.width(), -float(e->pos().y() - rect.top() + 0.5f) / rect.height(), ray);
         _throwRay(ray, hit);
-        Color t;
-        t.FromInt(hit.shade.ToInt());
-        qDebug() << hit.shade.Red << hit.shade.Green << hit.shade.Blue << " | " << t.Red * 255 << t.Green * 255 << t.Blue * 255;
+        emit clicked(hit);
     }
 }
 
@@ -277,8 +287,8 @@ void Renderer::_throwRay(const Ray &ray, Intersection &hit)
             hit.light->intersectionColor(hit.shade);
             return ;
         }
-        if (hit.material && ray.depth < config->maximumRecursionDepth()) {
-            int sampleNumber = config->reflectionSampleNumber();
+        if (hit.material && ray.depth < config->pathDepth()) {
+            int sampleNumber = config->pathSampleNumber();
             for (int s = 0; s < sampleNumber; ++s) {
                 Ray newRay;
                 Color c;

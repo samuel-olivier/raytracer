@@ -114,6 +114,10 @@ void AshikhminMaterial::sampleRay(const Ray &ray, const Intersection &hit, Ray &
         h.normalize();
         QVector3D k1 = -ray.direction;
         QVector3D k2 = -k1 + 2.0f * QVector3D::dotProduct(k1, h) * h;
+        if (QVector3D::dotProduct(k2, hit.normal) < 0.0f) {
+            intensity = Color::BLACK;
+            return ;
+        }
         k2.normalize();
 
         intensity = _specularColor;

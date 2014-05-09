@@ -16,6 +16,11 @@ Camera::~Camera()
 {
 }
 
+QVector3D Camera::position() const
+{
+    return _matrix.column(3).toVector3D();
+}
+
 void Camera::set(float verticalFOV, float aspectRatio)
 {
     _verticalFOV = qDegreesToRadians(verticalFOV);
@@ -25,6 +30,11 @@ void Camera::set(float verticalFOV, float aspectRatio)
     _screenHeight *= 2.f;
     _screenWidth = _screenHeight * _aspectRatio;
     _screenTopLeft = (-_matrix.column(2) - (_screenWidth / 2.f) * _matrix.column(0) + (_screenHeight / 2.f) * _matrix.column(1) + _matrix.column(3)).toVector3D();
+}
+
+float Camera::aperture() const
+{
+    return _aperture;
 }
 
 void Camera::ray(float x, float y, Ray& ray)
@@ -38,6 +48,14 @@ void Camera::ray(float x, float y, Ray& ray)
     QVector3D direction = (_screenTopLeft + x * _screenWidth * _matrix.column(0) + y * _screenHeight * _matrix.column(1) - _matrix.column(3)).toVector3D();
     QVector3D focus = _matrix.column(3).toVector3D() + direction * _focalPlane;
     ray.direction = focus - ray.origin;
+    ray.direction.normalize();
+}
+
+void Camera::notSampledRay(float x, float y, Ray &ray)
+{
+    ray.origin = _matrix.column(3).toVector3D();
+
+    ray.direction = (_screenTopLeft + x * _screenWidth * _matrix.column(0) + y * _screenHeight * _matrix.column(1) - _matrix.column(3)).toVector3D();
     ray.direction.normalize();
 }
 
@@ -55,9 +73,24 @@ void Camera::lookAt(const QVector3D &position, const QVector3D &target, const QV
     _matrix.setColumn(3, d);
 }
 
+float Camera::verticalFOV() const
+{
+    return qRadiansToDegrees(_verticalFOV);
+}
+
+float Camera::aspectRatio() const
+{
+    return _aspectRatio;
+}
+
 void Camera::setAperture(float aperture)
 {
     _aperture = aperture;
+}
+
+float Camera::focalPlane() const
+{
+    return _focalPlane;
 }
 
 void Camera::setFocalPlane(float focalPlane)
