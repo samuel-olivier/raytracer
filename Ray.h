@@ -24,6 +24,7 @@ public:
     QVector3D   inverseDirection;
     int         depth;
     float       refraction;
+    float       time;
 };
 
 #endif // RAY_H

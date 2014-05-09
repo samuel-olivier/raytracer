@@ -35,6 +35,7 @@ SceneGenerator::SceneGenerator()
     _scenes.append(QPair<QString, Loader>("Project 2 - 2 Dragons", &SceneGenerator::_loadProject2_2Dragons));
     _scenes.append(QPair<QString, Loader>("Project 3 - Standard", &SceneGenerator::_loadProject3_Standard));
     _scenes.append(QPair<QString, Loader>("Project 3 - Focus", &SceneGenerator::_loadProject3_Focus));
+    _scenes.append(QPair<QString, Loader>("Project 3 - Animation", &SceneGenerator::_loadProject3_Anim));
 
     _scenes.append(QPair<QString, Loader>("1 Cube / 1 Plane", &SceneGenerator::_loadCube));
     _scenes.append(QPair<QString, Loader>("Teapot", &SceneGenerator::_loadTeapot));
@@ -442,6 +443,92 @@ void SceneGenerator::_loadProject3_Focus(Renderer *renderer)
         mtx.setToIdentity();
         mtx.translate(0.0f, 0.0f, -0.1f * float(i));
         inst->setMatrix(mtx);
+        inst->setMaterial(mtls[i]);
+        scene->addNode(inst);
+    }
+
+    Box* ground = new Box;
+    LambertMaterial* groundMat  = new LambertMaterial;
+    groundMat->setDiffuseColor(Color(0.3f, 0.3f, 0.35f));
+    ground->set(2.0f, 0.11f, 2.0f);
+    ground->setMaterial(groundMat);
+    scene->addNode(ground);
+
+    DirectionalLight* sunlgt = new DirectionalLight;
+    sunlgt->setBaseColor(Color(1.0f, 1.0f, 0.9f));
+    sunlgt->setIntensity(1.0f);
+    sunlgt->setDirection(QVector3D(2.0f, -3.0f, -2.0f));
+    scene->addNode(sunlgt);
+
+    renderer->setScene(scene);
+    renderer->setCamera(camera);
+}
+
+void SceneGenerator::_loadProject3_Anim(Renderer *renderer)
+{
+    Config::Epsilon = 0.0001f;
+
+    Camera* camera = renderer->camera();
+    camera->lookAt(QVector3D(-0.5f, 0.25f, -0.2f), QVector3D(0.0f, 0.15f, -0.15f), config->yAxis());
+    camera->set(40.0f, 1.33f);
+
+    Scene* scene = new Scene;
+    scene->setSkyColor(Color(0.8f, 0.9f, 1.0f));
+
+    const int numDragon = 4;
+    AshikhminMaterial* mtls[numDragon];
+
+    // Diffuse
+    mtls[0] = new AshikhminMaterial;
+    mtls[0]->setSpecularLevel(0.0f);
+    mtls[0]->setDiffuseLevel(1.0f);
+    mtls[0]->setDiffuseColor(Color(0.7f,0.7f,0.7f));
+
+    // Roughened copper
+    mtls[1] = new AshikhminMaterial;
+    mtls[1]->setDiffuseLevel(0.0f);
+    mtls[1]->setSpecularLevel(1.0f);
+    mtls[1]->setSpecularColor(Color(0.9f,0.6f,0.5f));
+    mtls[1]->setRoughness(100.0f,100.0f);
+
+    // Anisotropic gold
+    mtls[2] = new AshikhminMaterial;
+    mtls[2]->setDiffuseLevel(0.0f);
+    mtls[2]->setSpecularLevel(1.0f);
+    mtls[2]->setSpecularColor(Color(0.95f,0.7f,0.3f));
+    mtls[2]->setRoughness(1.0f,1000.0f);
+
+    // Red plastic
+    mtls[3] = new AshikhminMaterial;
+    mtls[3]->setDiffuseColor(Color(1.0f,0.1f,0.1f));
+    mtls[3]->setDiffuseLevel(0.8f);
+    mtls[3]->setSpecularLevel(0.2f);
+    mtls[3]->setSpecularColor(Color(1.0f,1.0f,1.0f));
+    mtls[3]->setRoughness(1000.0f,1000.0f);
+
+    AssimpLoader loader;
+    QList<Mesh*> meshes;
+    loader.loadFile1(config->rootDir() + "/Dragon/dragon.ply", meshes);
+    QTime time;
+    time.restart();
+    Mesh* dragon = meshes.first();
+    BoxTreeNode* tree = new BoxTreeNode;
+    tree->construct(dragon);
+    logger->writeInfo(QString("Dragon Tree Construction : %1 ms").arg(QString::number(time.elapsed())));
+
+    QMatrix4x4 mtx;
+    for (int i = 0; i < numDragon; ++i) {
+        Instance* inst=new Instance(tree);
+        mtx.setToIdentity();
+        mtx.translate(0.0f, 0.0f, -0.1f * float(i));
+        if (i == 0) {
+            QMatrix4x4 mtx1;
+            mtx1.setToIdentity();
+            mtx1.translate(-0.05f, 0.0f, -0.1f * float(i));
+            inst->setAnimation(mtx, mtx1);
+        } else {
+            inst->setMatrix(mtx);
+        }
         inst->setMaterial(mtls[i]);
         scene->addNode(inst);
     }

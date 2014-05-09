@@ -56,7 +56,7 @@ private:
     void    _raytrace();
     void    _raytraceSections();
     void    _throwRay(Ray const& ray, Intersection &hit);
-    bool    _isShaded(QVector3D const& hitPosition, QVector3D const& toLight, QVector3D const& lightPos);
+    bool    _isShaded(QVector3D const& hitPosition, QVector3D const& toLight, QVector3D const& lightPos, float time);
     void    _setPixel(int x, int y, Color const& color);
 
     QImage  _image;

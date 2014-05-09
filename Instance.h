@@ -14,13 +14,17 @@ public:
     virtual bool intersect(const Ray &ray, Intersection &hit);
 
     void    setMatrix(const QMatrix4x4 &matrix);
+    void    setAnimation(const QMatrix4x4 &m1, const QMatrix4x4 &m2);
 
     virtual void    updateInfo();
 
 private:
+    void        _matrixAt(float t, QMatrix4x4 &m, QMatrix4x4 &invM) const;
     Node*       _object;
-    QMatrix4x4  _matrix;
-    QMatrix4x4  _invMatrix;
+    bool        _isAnimated;
+    QMatrix4x4  _m1;
+    QMatrix4x4  _invM1;
+    QMatrix4x4  _m2;
 };
 
 #endif // INSTANCE_H

@@ -268,6 +268,7 @@ void Renderer::_raytraceSections()
                         Intersection hit;
 
                         _camera->ray(vx, -vy, ray);
+                        ray.time = float(qrand()) / RAND_MAX;
                         _throwRay(ray, hit);
                         pixel.AddScaled(hit.shade, 1.0f / (resolution * resolution));
                     }
@@ -297,6 +298,7 @@ void Renderer::_throwRay(const Ray &ray, Intersection &hit)
                 if (!c.isBlack()) {
                     newRay.depth = ray.depth + 1;
                     Intersection newHit;
+                    newRay.time = ray.time;
                     _throwRay(newRay, newHit);
                     newHit.shade.Multiply(c);
                     newHit.shade.Scale(1.0f / sampleNumber);
@@ -313,7 +315,7 @@ void Renderer::_throwRay(const Ray &ray, Intersection &hit)
                 float bright = light->illuminate(hit.position, color, toLight, lightPos) / sampleNumber;
                 float cosTheta = QVector3D::dotProduct(toLight, hit.normal);
                 if (cosTheta >= Config::Epsilon && bright >= Config::Epsilon) {
-                    if (!config->shadowEnabled() || !_isShaded(hit.position, toLight, lightPos)) {
+                    if (!config->shadowEnabled() || !_isShaded(hit.position, toLight, lightPos, ray.time)) {
                         Color materialColor = Color::WHITE;
                         if (hit.material) {
                             hit.material->computeReflectance(materialColor, toLight, ray, hit);
@@ -329,10 +331,11 @@ void Renderer::_throwRay(const Ray &ray, Intersection &hit)
     }
 }
 
-bool Renderer::_isShaded(QVector3D const& hitPosition, QVector3D const& toLight, QVector3D const& lightPos) {
+bool Renderer::_isShaded(QVector3D const& hitPosition, QVector3D const& toLight, QVector3D const& lightPos, float time) {
     Intersection hit;
     Ray shadowRay(hitPosition, toLight, Ray::Shadow);
 
+    shadowRay.time = time;
     hit.hitDistance = hitPosition.distanceToPoint(lightPos);
     return _scene->intersect(shadowRay, hit);
 }

@@ -40,6 +40,18 @@ void BoundingBox::merge(const QVector3D &point)
     max.setZ(qMax(max.z(), point.z()));
 }
 
+void BoundingBox::mergeTransformed(const BoundingBox &other, const QMatrix4x4 &m)
+{
+    merge(m.map(QVector3D(other.min[0], other.min[1], other.min[2])));
+    merge(m.map(QVector3D(other.min[0], other.min[1], other.max[2])));
+    merge(m.map(QVector3D(other.min[0], other.max[1], other.min[2])));
+    merge(m.map(QVector3D(other.min[0], other.max[1], other.max[2])));
+    merge(m.map(QVector3D(other.max[0], other.min[1], other.min[2])));
+    merge(m.map(QVector3D(other.max[0], other.min[1], other.max[2])));
+    merge(m.map(QVector3D(other.max[0], other.max[1], other.min[2])));
+    merge(m.map(QVector3D(other.max[0], other.max[1], other.max[2])));
+}
+
 void BoundingBox::reset()
 {
     min = QVector3D(std::numeric_limits<float>::max(),

@@ -2,6 +2,7 @@
 #define BOUNDINGBOX_H
 
 #include <QVector3D>
+#include <QMatrix4x4>
 
 #include "Ray.h"
 
@@ -21,6 +22,7 @@ public:
 
     void    merge(BoundingBox const& other);
     void    merge(QVector3D const& point);
+    void    mergeTransformed(BoundingBox const& other, QMatrix4x4 const& m);
 
     void    reset();
     void    setToInfinity();

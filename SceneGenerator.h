@@ -35,6 +35,7 @@ private:
     void    _loadProject2_2Dragons(Renderer* renderer);
     void    _loadProject3_Standard(Renderer* renderer);
     void    _loadProject3_Focus(Renderer* renderer);
+    void    _loadProject3_Anim(Renderer* renderer);
 
     void    _loadCube(Renderer* renderer);
     void    _loadTeapot(Renderer* renderer);

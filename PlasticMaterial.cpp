@@ -49,21 +49,6 @@ void PlasticMaterial::sampleRay(const Ray &ray, const Intersection &hit, Ray &ne
     }
 }
 
-void PlasticMaterial::computeRays(const Ray &ray, const Intersection &hit, QVector<QPair<Color, Ray> > &newRays) const
-{
-    float ni = config->refractionIndex();
-    float nt = _n;
-
-    QVector<QPair<float, QVector3D>> rays;
-    Material::fresnelDielectric(ray.direction, hit.normal, ni, nt, rays);
-
-    if (rays.size() > 0) {
-        Color c = Color::WHITE;
-        c.Scale(rays.first().first);
-        newRays.append(QPair<Color, Ray>(c, Ray(hit.position, rays.first().second)));
-    }
-}
-
 const Color &PlasticMaterial::diffuseColor() const
 {
     return _diffuseColor;

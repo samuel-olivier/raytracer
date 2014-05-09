@@ -3,12 +3,12 @@
 #include "Config.h"
 
 Ray::Ray()
-    : type(Primary), depth(0), refraction(config->refractionIndex())
+    : type(Primary), depth(0), refraction(config->refractionIndex()), time(0.0f)
 {
 }
 
 Ray::Ray(const QVector3D &origin, const QVector3D &direction, Type type)
-    : origin(origin), direction(direction), type(type), depth(0), refraction(config->refractionIndex())
+    : origin(origin), direction(direction), type(type), depth(0), refraction(config->refractionIndex()), time(0.0f)
 {
     computeInverse();
 }
