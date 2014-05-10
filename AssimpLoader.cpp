@@ -10,8 +10,9 @@
 #include "CustomMesh.h"
 #include "Triangle.h"
 #include "Vertex.h"
-#include "CustomMaterial.h"
+#include "LambertMaterial.h"
 #include "Logger.h"
+#include "ImageTexture.h"
 
 AssimpLoader::AssimpLoader()
     : _importer(0)
@@ -111,7 +112,7 @@ void AssimpLoader::loadFile1(const QString &filename, QList<Mesh *> &meshes)
     // Read tris
     Triangle** Triangles;
     if(numtris>0) {
-        Material* mtl=new CustomMaterial;
+        Material* mtl=new LambertMaterial;
         NumTriangles=numtris;
         Triangles=new Triangle*[numtris];
         for(i=0;i<numtris;i++) {
@@ -148,14 +149,14 @@ void AssimpLoader::_loadMaterials(const aiScene *scene)
     _materials.resize(scene->mNumMaterials);
     for (int i = 0; i < scene->mNumMaterials; ++i) {
         aiMaterial* mtl = scene->mMaterials[i];
-        CustomMaterial* mat = new CustomMaterial;
+        LambertMaterial* mat = new LambertMaterial;
         aiString path;
         aiColor4D diffuse;
         //        aiColor4D specular;
         //        aiColor4D ambient;
         //        aiColor4D emission;
-        float shininess, strength, opacity;
-        int max;
+//        float shininess, strength, opacity;
+//        int max;
 
         if (aiGetMaterialColor(mtl, AI_MATKEY_COLOR_DIFFUSE, &diffuse) == AI_SUCCESS) {
             mat->setDiffuseColor(Color(diffuse.r, diffuse.g, diffuse.b));
@@ -177,9 +178,14 @@ void AssimpLoader::_loadMaterials(const aiScene *scene)
         //        if (aiGetMaterialFloatArray(mtl, AI_MATKEY_SHININESS_STRENGTH, &strength, &max) == AI_SUCCESS) {
         //            mat->setShininessStrength(strength);
         //        }
-        //        if (mtl->GetTexture(aiTextureType_DIFFUSE, 0, &path) == AI_SUCCESS) {
-        //            mat->loadTexture(_baseDir + "/" + path.C_Str());
-        //        }
+        if (mtl->GetTexture(aiTextureType_DIFFUSE, 0, &path) == AI_SUCCESS) {
+            ImageTexture* t = new ImageTexture(_baseDir + "/" + path.C_Str());
+            if (t->hasImage()) {
+                mat->setDiffuseColor(t);
+            } else {
+                delete t;
+            }
+        }
         _materials[i] = mat;
     }
 }

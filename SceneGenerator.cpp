@@ -8,28 +8,35 @@
 #include "Config.h"
 #include "Scene.h"
 #include "Camera.h"
+#include "AssimpLoader.h"
+#include "Logger.h"
+
 #include "Triangle.h"
 #include "Box.h"
 #include "Instance.h"
+#include "Sphere.h"
+#include "Plane.h"
+#include "BoxTreeNode.h"
+
 #include "PointLight.h"
 #include "DirectionalLight.h"
 #include "ParallelogramLight.h"
-#include "Sphere.h"
-#include "Plane.h"
+
 #include "CustomMaterial.h"
-#include "AssimpLoader.h"
-#include "BoxTreeNode.h"
-#include "Logger.h"
 #include "MetalMaterial.h"
 #include "DielectricMaterial.h"
 #include "PlasticMaterial.h"
 #include "LambertMaterial.h"
 #include "AshikhminMaterial.h"
 
+#include "UniformTexture.hpp"
+#include "ImageTexture.h"
+
 SceneGenerator* SceneGenerator::_instance = 0;
 
 SceneGenerator::SceneGenerator()
 {
+    _scenes.append(QPair<QString, Loader>("Test", &SceneGenerator::_loadSceneTest));
     _scenes.append(QPair<QString, Loader>("Project 1 - Cubes", &SceneGenerator::_loadProject1_Cubes));
     _scenes.append(QPair<QString, Loader>("Project 1 - Spheres", &SceneGenerator::_loadProject1_Spheres));
     _scenes.append(QPair<QString, Loader>("Project 2 - 2 Dragons", &SceneGenerator::_loadProject2_2Dragons));
@@ -44,7 +51,6 @@ SceneGenerator::SceneGenerator()
     _scenes.append(QPair<QString, Loader>("Many Dragons", &SceneGenerator::_loadManyDragons));
     _scenes.append(QPair<QString, Loader>("Many Teapots", &SceneGenerator::_loadManyTeapots));
     _scenes.append(QPair<QString, Loader>("Big", &SceneGenerator::_loadBig));
-    _scenes.append(QPair<QString, Loader>("Test", &SceneGenerator::_loadSceneTest));
 }
 
 SceneGenerator::~SceneGenerator()
@@ -141,7 +147,49 @@ QList<QString> SceneGenerator::scenes() const
 
 void SceneGenerator::_loadSceneTest(Renderer *renderer)
 {
-    (void)renderer;
+    Config::Epsilon = 0.001f;
+
+    Camera* camera = renderer->camera();
+    camera->lookAt(QVector3D(0.0f, 0.75, 3.0f), QVector3D(0.0f, 0.75f, 0.0f), config->yAxis());
+    camera->set(40.0f, 1.33f);
+
+    Scene* scene = new Scene;
+    scene->setSkyColor(Color(0.3f, 0.3f, 0.3f));
+
+    AssimpLoader loader;
+    QList<Mesh*> meshes;
+    loader.loadFile(config->rootDir() + "/CornelBox/CornellBox-Empty.obj", meshes);
+    QTime time;
+    time.restart();
+    for (Mesh* mesh : meshes) {
+        BoxTreeNode* tree = new BoxTreeNode;
+        tree->construct(mesh);
+        scene->addNode(tree);
+    }
+    logger->writeInfo(QString("Cornell Box Tree Construction : %1 ms").arg(QString::number(time.elapsed())));
+
+    AshikhminMaterial* sphereMat = new AshikhminMaterial;
+    sphereMat->setDiffuseLevel(0.0f);
+    sphereMat->setSpecularLevel(1.0f);
+    sphereMat->setSpecularColor(Color(1.0f, 1.0f, 1.0f));
+    sphereMat->setRoughness(100.0f, 100.0f);
+    ImageTexture* roughnessT = new ImageTexture(config->rootDir() + "earth1.bmp");
+    sphereMat->setRoughness(roughnessT, roughnessT);
+
+    Sphere* sphere = new Sphere();
+    sphere->setRadius(0.45f);
+    sphere->setOrigin(QVector3D(0.0f, 0.45f, 0.0f));
+    sphere->setMaterial(sphereMat);
+    scene->addNode(sphere);
+
+    ParallelogramLight* lgt = new ParallelogramLight();
+    lgt->setBaseColor(Color(1.0f, 1.0f, 1.0f));
+    lgt->setIntensity(0.35f);
+    lgt->set(QVector3D(-0.24f, 1.58f, -0.22f), QVector3D(0.47f, 0, 0.0f), QVector3D(0.0f, 0, 0.38f));
+    scene->addNode(lgt);
+
+    renderer->setScene(scene);
+    renderer->setCamera(camera);
 }
 
 void SceneGenerator::_loadProject1_Cubes(Renderer *renderer)
@@ -204,6 +252,13 @@ void SceneGenerator::_loadProject1_Spheres(Renderer *renderer)
 {
     Config::Epsilon = 0.001f;
 
+    Texture* t = new UniformTexture<float>(5.0f);
+    Color tmp;
+    t->evaluateColor(0.0f, 0.0f, tmp);
+    float f;
+    t->evaluateFloat(0.0f, 0.0f, f);
+    qDebug() << tmp.Red << tmp.Green << tmp.Blue << f;
+
     Camera* camera = renderer->camera();
     camera->lookAt(QVector3D(-0.75f, 0.25f, 5.0f), QVector3D(0.0f, 0.5f, 0.0f), config->yAxis());
     camera->set(40.0f, 1.33f);
@@ -212,10 +267,12 @@ void SceneGenerator::_loadProject1_Spheres(Renderer *renderer)
     scene->setSkyColor(Color(0.8f, 0.8f, 1.0f));
 
     LambertMaterial* sMat = new LambertMaterial;
-    sMat->setDiffuseColor(Color::WHITE);
+//    sMat->setDiffuseColor(Color(0.8f, 0.8f, 0.8f));
+    sMat->setDiffuseColor(new ImageTexture(config->rootDir() + "/earth.jpg"));
 
     LambertMaterial* gMat = new LambertMaterial;
-    gMat->setDiffuseColor(Color(0.3f, 0.3f, 0.3f));
+    gMat->setDiffuseColor(new ImageTexture(config->rootDir() + "/checkerboard.png"));
+    //    gMat->setDiffuseColor(Color(0.3f, 0.3f, 0.3f));
     //    mat->loadTexture(config->rootDir() + "/earth.jpg");
 
     Plane* ground = new Plane;
@@ -260,8 +317,8 @@ void SceneGenerator::_loadProject2_2Dragons(Renderer *renderer)
     QTime time;
     time.restart();
     Mesh* dragon = meshes.first();
-    CustomMaterial* mat  = dynamic_cast<CustomMaterial*>(dragon->triangles().first()->material());
-    mat->setDiffuseColor(Color::WHITE);
+    LambertMaterial* mat  = dynamic_cast<LambertMaterial*>(dragon->triangles().first()->material());
+    mat->setDiffuseColor(Color(0.6f, 0.6f, 0.6f));
     BoxTreeNode* tree = new BoxTreeNode;
     tree->construct(dragon);
     scene->addNode(tree);
@@ -620,7 +677,6 @@ void SceneGenerator::_loadTeapot(Renderer *renderer)
     QTime time;
     time.restart();
     for (Mesh* mesh : meshes) {
-        mesh->setMaterial(teapotMat);
         BoxTreeNode* tree = new BoxTreeNode;
         tree->construct(mesh);
         scene->addNode(tree);

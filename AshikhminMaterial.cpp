@@ -4,101 +4,180 @@
 #include <QtMath>
 #include <QtGlobal>
 
+#include "UniformTexture.hpp"
+
 AshikhminMaterial::AshikhminMaterial()
 {
-    _diffuseLevel = 1.0f;
-    _diffuseColor = Color::BLACK;
-    _specularLevel = 0.0f;
-    _specularColor = Color::BLACK;
+    _diffuseLevel = new UniformFloat(1.0f);
+    _diffuseColor = new UniformColor(Color::BLACK);
+    _specularLevel = new UniformFloat(0.0f);
+    _specularColor = new UniformColor(Color::BLACK);
+    _roughnessU = new UniformFloat(0.0f);
+    _roughnessV = new UniformFloat(0.0f);
 }
 
 AshikhminMaterial::~AshikhminMaterial()
 {
 }
 
-float AshikhminMaterial::diffuseLevel() const
+Texture* AshikhminMaterial::diffuseLevel() const
 {
     return _diffuseLevel;
 }
 
 void AshikhminMaterial::setDiffuseLevel(float diffuseLevel)
 {
+    UniformFloat* t = dynamic_cast<UniformFloat*>(_diffuseLevel);
+    if (t) {
+        t->setValue(diffuseLevel);
+    }
+}
+
+void AshikhminMaterial::setDiffuseLevel(Texture *diffuseLevel)
+{
     _diffuseLevel = diffuseLevel;
 }
 
-Color AshikhminMaterial::diffuseColor() const
+Texture* AshikhminMaterial::diffuseColor() const
 {
     return _diffuseColor;
 }
 
 void AshikhminMaterial::setDiffuseColor(const Color &diffuseColor)
 {
+    UniformColor* t = dynamic_cast<UniformColor*>(_diffuseColor);
+    if (t) {
+        t->setValue(diffuseColor);
+    }
+}
+
+void AshikhminMaterial::setDiffuseColor(Texture *diffuseColor)
+{
     _diffuseColor = diffuseColor;
 }
 
-float AshikhminMaterial::specularLevel() const
+Texture* AshikhminMaterial::specularLevel() const
 {
     return _specularLevel;
 }
 
 void AshikhminMaterial::setSpecularLevel(float specularLevel)
 {
+    UniformFloat* t = dynamic_cast<UniformFloat*>(_specularLevel);
+    if (t) {
+        t->setValue(specularLevel);
+    }
+}
+
+void AshikhminMaterial::setSpecularLevel(Texture *specularLevel)
+{
     _specularLevel = specularLevel;
 }
 
-Color AshikhminMaterial::specularColor() const
+Texture* AshikhminMaterial::specularColor() const
 {
     return _specularColor;
 }
 
 void AshikhminMaterial::setSpecularColor(const Color &specularColor)
 {
+    UniformColor* t = dynamic_cast<UniformColor*>(_specularColor);
+    if (t) {
+        t->setValue(specularColor);
+    }
+}
+
+void AshikhminMaterial::setSpecularColor(Texture *specularColor)
+{
     _specularColor = specularColor;
 }
 
-QVector2D AshikhminMaterial::roughness() const
+Texture* AshikhminMaterial::roughnessU() const
 {
-    return _roughness;
+    return _roughnessU;
 }
 
-float AshikhminMaterial::roughnessU() const
+void AshikhminMaterial::setRoughnessU(float roughnessU)
 {
-    return _roughness.x();
+    UniformFloat* t = dynamic_cast<UniformFloat*>(_roughnessU);
+    if (t) {
+        t->setValue(roughnessU);
+    }
 }
 
-float AshikhminMaterial::roughnessV() const
+void AshikhminMaterial::setRoughnessU(Texture *roughnessU)
 {
-    return _roughness.y();
+    _roughnessU = roughnessU;
 }
 
-void AshikhminMaterial::setRoughness(float u, float v)
+Texture* AshikhminMaterial::roughnessV() const
 {
-    _roughness.setX(u);
-    _roughness.setY(v);
+    return _roughnessV;
 }
 
-void AshikhminMaterial::setRoughness(const QVector2D &roughness)
+void AshikhminMaterial::setRoughnessV(float roughnessV)
 {
-    _roughness = roughness;
+    UniformFloat* t = dynamic_cast<UniformFloat*>(_roughnessV);
+    if (t) {
+        t->setValue(roughnessV);
+    }
+}
+
+void AshikhminMaterial::setRoughnessV(Texture *roughnessV)
+{
+    _roughnessV = roughnessV;
+}
+
+void AshikhminMaterial::setRoughness(float roughnessU, float roughnessV)
+{
+    setRoughnessU(roughnessU);
+    setRoughnessV(roughnessV);
+}
+
+void AshikhminMaterial::setRoughness(Texture *roughnessU, Texture *roughnessV)
+{
+    setRoughnessU(roughnessU);
+    setRoughnessV(roughnessV);
 }
 
 void AshikhminMaterial::computeReflectance(Color &col, const QVector3D &in, const Ray &ray, const Intersection &hit) const
 {
     float Ps, Pd;
+    float rU, rV;
+    float sLevel, dLevel;
+    Color sColor, dColor;
 
-    Material::ashikhmin(in, -ray.direction, hit.normal, hit.u, hit.v, roughnessU(), roughnessV(), _specularLevel, _diffuseLevel, Ps, Pd);
+    _roughnessU->evaluateFloat(hit.texCoord, rU);
+    _roughnessV->evaluateFloat(hit.texCoord, rV);
+    _specularLevel->evaluateFloat(hit.texCoord, sLevel);
+    _diffuseLevel->evaluateFloat(hit.texCoord, dLevel);
+    _specularColor->evaluateColor(hit.texCoord, sColor);
+    _diffuseColor->evaluateColor(hit.texCoord, dColor);
+
+    Material::ashikhmin(in, -ray.direction, hit.normal, hit.u, hit.v, rU, rV, sLevel, dLevel, Ps, Pd);
+
     col = Color::BLACK;
-    col.AddScaled(_specularColor, Ps);
-    col.AddScaled(_diffuseColor, Pd);
+    col.AddScaled(sColor, Ps);
+    col.AddScaled(dColor, Pd);
     col.Scale(QVector3D::dotProduct(in, hit.normal));
 }
 
 void AshikhminMaterial::sampleRay(const Ray &ray, const Intersection &hit, Ray &newRay, Color &intensity) const
 {
-    if (float(qrand()) / RAND_MAX < _specularLevel) {
+    float sLevel;
+
+    _specularLevel->evaluateFloat(hit.texCoord, sLevel);
+    if (float(qrand()) / RAND_MAX < sLevel) {
+        float rU, rV;
+        Color sColor;
+
+        _roughnessU->evaluateFloat(hit.texCoord, rU);
+        _roughnessV->evaluateFloat(hit.texCoord, rV);
+        _specularColor->evaluateColor(hit.texCoord, sColor);
+
         float E1 = float(qrand()) / RAND_MAX;
         float E2 = float(qrand()) / RAND_MAX;
-        float phi = qAtan(qSqrt((roughnessU() + 1.0f) / (roughnessV() + 1.0f)) * qTan(M_PI * E1 * 0.5f));
+        float phi = qAtan(qSqrt((rU + 1.0f) / (rV + 1.0f)) * qTan(M_PI * E1 * 0.5f));
         float quadrant = float(qrand()) / RAND_MAX;
 
         if (quadrant > 0.75f) {
@@ -108,7 +187,7 @@ void AshikhminMaterial::sampleRay(const Ray &ray, const Intersection &hit, Ray &
         } else if (quadrant > 0.25f) {
             phi = M_PI - phi;
         }
-        float cosTheta = qPow(1.0f - E2, 1.0f / (roughnessU() * qPow(qCos(phi), 2.0f) + roughnessV() * qPow(qSin(phi), 2.0f) + 1.0f));
+        float cosTheta = qPow(1.0f - E2, 1.0f / (rU * qPow(qCos(phi), 2.0f) + rV * qPow(qSin(phi), 2.0f) + 1.0f));
         float sinTheta = qSin(qAcos(cosTheta));
         QVector3D h = hit.normal * cosTheta + hit.u * sinTheta * qCos(phi) + hit.v * sinTheta * qSin(phi);
         h.normalize();
@@ -120,7 +199,7 @@ void AshikhminMaterial::sampleRay(const Ray &ray, const Intersection &hit, Ray &
         }
         k2.normalize();
 
-        intensity = _specularColor;
+        intensity = sColor;
         newRay.origin = hit.position;
         newRay.direction = k2;
     } else {
@@ -128,10 +207,12 @@ void AshikhminMaterial::sampleRay(const Ray &ray, const Intersection &hit, Ray &
         float t = float(qrand()) / RAND_MAX;
         float u = 2.0f * M_PI * s;
         float v = qSqrt(1.0f - t);
+        Color dColor;
 
+        _diffuseColor->evaluateColor(hit.texCoord, dColor);
         newRay.origin = hit.position;
         newRay.direction = hit.normal * qSqrt(t) + hit.u * v * qCos(u) + hit.v * v * qSin(u);
         newRay.direction.normalize();
-        intensity = _diffuseColor;
+        intensity = dColor;
     }
 }

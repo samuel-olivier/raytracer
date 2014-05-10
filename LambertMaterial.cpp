@@ -4,8 +4,9 @@
 #include <QtMath>
 
 #include "Config.h"
+#include "UniformTexture.hpp"
 
-LambertMaterial::LambertMaterial() : _diffuseColor(Color::WHITE)
+LambertMaterial::LambertMaterial() : _diffuseColor(new UniformColor(Color::WHITE))
 {
     setName("Lambert Material");
 }
@@ -14,19 +15,27 @@ LambertMaterial::~LambertMaterial()
 {
 }
 
-const Color &LambertMaterial::diffuseColor() const
+Texture* LambertMaterial::diffuseColor() const
 {
     return _diffuseColor;
 }
 
-void LambertMaterial::setDiffuseColor(const Color &diffuseColor)
+void LambertMaterial::setDiffuseColor(Texture *diffuseColor)
 {
     _diffuseColor = diffuseColor;
 }
 
+void LambertMaterial::setDiffuseColor(const Color &diffuseColor)
+{
+    UniformColor* t = dynamic_cast<UniformColor*>(_diffuseColor);
+    if (t) {
+        t->setValue(diffuseColor);
+    }
+}
+
 void LambertMaterial::computeReflectance(Color &col, const QVector3D &in, const Ray &, const Intersection &hit) const
 {
-    col = _diffuseColor;
+    _diffuseColor->evaluateColor(hit.texCoord, col);
     col.Scale(QVector3D::dotProduct(in, hit.normal));
 }
 
@@ -39,5 +48,5 @@ void LambertMaterial::sampleRay(const Ray &, const Intersection &hit, Ray &newRa
 
     newRay.origin = hit.position;
     newRay.direction = hit.normal * qSqrt(t) + hit.u * v * qCos(u) + hit.v * v * qSin(u);
-    intensity = _diffuseColor;
+    _diffuseColor->evaluateColor(hit.texCoord, intensity);
 }

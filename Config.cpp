@@ -156,7 +156,7 @@ Config::Config()
     _xAxis = QVector3D(1.0f, 0.0f, 0.0f);
     _yAxis = QVector3D(0.0f, 1.0f, 0.0f);
     _zAxis = QVector3D(0.0f, 0.0f, 1.0f);
-    _rootDir = "C:/Users/samuel/Documents/Dev/Raytracer/Files";
+    _rootDir = "C:/Users/samuel/Documents/Dev/Raytracer/Files/";
     _shadowEnabled = true;
     _threadNumber = 8;
     _renderingTaskNumber = 2000;

@@ -35,7 +35,6 @@ SOURCES += main.cpp\
     Color.cpp \
     Sphere.cpp \
     Plane.cpp \
-    CustomMaterial.cpp \
     AssimpLoader.cpp \
     CustomMesh.cpp \
     DielectricMaterial.cpp \
@@ -48,7 +47,9 @@ SOURCES += main.cpp\
     Logger.cpp \
     MetalMaterial.cpp \
     PlasticMaterial.cpp \
-    AshikhminMaterial.cpp
+    AshikhminMaterial.cpp \
+    Texture.cpp \
+    ImageTexture.cpp
 
 HEADERS  += MainWindow.h \
     Renderer.h \
@@ -72,7 +73,6 @@ HEADERS  += MainWindow.h \
     Color.h \
     Sphere.h \
     Plane.h \
-    CustomMaterial.h \
     AssimpLoader.h \
     CustomMesh.h \
     DielectricMaterial.h \
@@ -85,7 +85,10 @@ HEADERS  += MainWindow.h \
     Logger.h \
     MetalMaterial.h \
     PlasticMaterial.h \
-    AshikhminMaterial.h
+    AshikhminMaterial.h \
+    Texture.h \
+    UniformTexture.hpp \
+    ImageTexture.h
 
 FORMS    += MainWindow.ui
 
