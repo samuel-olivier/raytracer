@@ -49,8 +49,8 @@ SceneGenerator::SceneGenerator()
 
     _scenes.append(QPair<QString, Loader>("1 Cube / 1 Plane", &SceneGenerator::_loadCube));
     _scenes.append(QPair<QString, Loader>("Teapot", &SceneGenerator::_loadTeapot));
-    _scenes.append(QPair<QString, Loader>("Cornell Box", &SceneGenerator::_loadCornelBox));
-    _scenes.append(QPair<QString, Loader>("Dragon in Cornell Box", &SceneGenerator::_loadCornelDragon));
+    _scenes.append(QPair<QString, Loader>("Cornell Box", &SceneGenerator::_loadCornellBox));
+    _scenes.append(QPair<QString, Loader>("Dragon in Cornell Box", &SceneGenerator::_loadCornellDragon));
     _scenes.append(QPair<QString, Loader>("Many Dragons", &SceneGenerator::_loadManyDragons));
     _scenes.append(QPair<QString, Loader>("Many Teapots", &SceneGenerator::_loadManyTeapots));
     _scenes.append(QPair<QString, Loader>("Big", &SceneGenerator::_loadBig));
@@ -639,7 +639,7 @@ void SceneGenerator::_loadTeapot(Renderer *renderer)
     renderer->setCamera(camera);
 }
 
-void SceneGenerator::_loadCornelBox(Renderer *renderer)
+void SceneGenerator::_loadCornellBox(Renderer *renderer)
 {
     Config::Epsilon = 0.00001f;
 
@@ -677,7 +677,7 @@ void SceneGenerator::_loadCornelBox(Renderer *renderer)
 
     AssimpLoader loader;
     QList<Mesh*> meshes;
-    loader.loadFile(config->sceneResourcesDir() + "/CornelBox/CornellBox-Sphere.obj", meshes);
+    loader.loadFile(config->sceneResourcesDir() + "/CornellBox/CornellBox-Sphere.obj", meshes);
     QTime time;
     time.restart();
     meshes.at(0)->setMaterial(sp1);
@@ -700,7 +700,7 @@ void SceneGenerator::_loadCornelBox(Renderer *renderer)
     renderer->setCamera(camera);
 }
 
-void SceneGenerator::_loadCornelDragon(Renderer *renderer)
+void SceneGenerator::_loadCornellDragon(Renderer *renderer)
 {
     Config::Epsilon = 0.001f;
 
@@ -730,7 +730,7 @@ void SceneGenerator::_loadCornelDragon(Renderer *renderer)
 
     AssimpLoader loader;
     QList<Mesh*> meshes;
-    loader.loadFile(config->sceneResourcesDir() + "/CornelBox/CornellBox-Empty.obj", meshes);
+    loader.loadFile(config->sceneResourcesDir() + "/CornellBox/CornellBox-Empty.obj", meshes);
     QTime time;
     time.restart();
     for (Mesh* mesh : meshes) {

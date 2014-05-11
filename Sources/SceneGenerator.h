@@ -39,8 +39,8 @@ private:
 
     void    _loadCube(Renderer* renderer);
     void    _loadTeapot(Renderer* renderer);
-    void    _loadCornelBox(Renderer* renderer);
-    void    _loadCornelDragon(Renderer* renderer);
+    void    _loadCornellBox(Renderer* renderer);
+    void    _loadCornellDragon(Renderer* renderer);
     void    _loadManyDragons(Renderer* renderer);
     void    _loadManyTeapots(Renderer* renderer);
     void    _loadBig(Renderer* renderer);
