@@ -24,6 +24,8 @@ public:
     QVector3D const& zAxis() const;
 
     QString const&  rootDir() const;
+    QString const&  sceneResourcesDir() const;
+    QString const&  outputDir() const;
 
     bool    shadowEnabled() const;
     void    setShadowEnabled(bool shadowEnabled);
@@ -73,6 +75,8 @@ private:
     QVector3D   _yAxis;
     QVector3D   _zAxis;
     QString     _rootDir;
+    QString     _sceneResourcesDir;
+    QString     _outputDir;
     bool        _shadowEnabled;
     int         _threadNumber;
     int         _renderingTaskNumber;

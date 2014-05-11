@@ -53,7 +53,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::onSaveImage()
 {
-    QString filename = QFileDialog::getSaveFileName(this, "Save Image", config->rootDir(), "Image Files (*.bmp *.jpg *.png);;All Files (*.*)");
+    QString filename = QFileDialog::getSaveFileName(this, "Save Image", config->outputDir(), "Image Files (*.bmp *.jpg *.png);;All Files (*.*)");
 
     if (!filename.isEmpty()) {
         _ui->renderer->saveImage(filename);

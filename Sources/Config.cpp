@@ -31,6 +31,16 @@ const QString &Config::rootDir() const
     return _rootDir;
 }
 
+const QString &Config::sceneResourcesDir() const
+{
+    return _sceneResourcesDir;
+}
+
+const QString &Config::outputDir() const
+{
+    return _outputDir;
+}
+
 bool Config::shadowEnabled() const
 {
     return _shadowEnabled;
@@ -166,7 +176,9 @@ Config::Config()
     _xAxis = QVector3D(1.0f, 0.0f, 0.0f);
     _yAxis = QVector3D(0.0f, 1.0f, 0.0f);
     _zAxis = QVector3D(0.0f, 0.0f, 1.0f);
-    _rootDir = "C:/Users/samuel/Documents/Dev/Raytracer/Files/";
+    _rootDir = "C:/Users/samuel/Documents/Dev/Raytracer/";
+    _sceneResourcesDir = _rootDir + "Resources/Scene/";
+    _outputDir = _rootDir + "Output/";
     _shadowEnabled = true;
     _threadNumber = 8;
     _renderingTaskNumber = 2000;
