@@ -151,6 +151,16 @@ float Config::defaultCameraFocusPlane() const
     return _defaultCameraFocusPlane;
 }
 
+int Config::defaultImageWidth() const
+{
+    return _defaultImageWidth;
+}
+
+int Config::defaultImageHeight() const
+{
+    return _defaultImageHeight;
+}
+
 Config::Config()
 {
     _xAxis = QVector3D(1.0f, 0.0f, 0.0f);
@@ -171,6 +181,8 @@ Config::Config()
     _defaultCameraAspectRatio = 1.33f;
     _defaultCameraAperture = 0.0f;
     _defaultCameraFocusPlane = 1.0f;
+    _defaultImageWidth = 800;
+    _defaultImageHeight = 600;
 }
 
 Config::~Config()

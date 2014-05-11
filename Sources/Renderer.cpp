@@ -22,7 +22,7 @@
 Renderer::Renderer(QWidget *parent)
     : QWidget(parent), _camera(0), _scene(0), _raytracerThread(0)
 {
-    setImageSize(800, 600);
+    setImageSize(config->defaultImageWidth(), config->defaultImageHeight());
     QTimer* updator = new QTimer(this);
     connect(updator, SIGNAL(timeout()), SLOT(repaint()));
     connect(this, SIGNAL(renderingFinished()), SLOT(_onStop()));
@@ -30,6 +30,7 @@ Renderer::Renderer(QWidget *parent)
 
     _stopThread = false;
     _isRendering = false;
+    _isPaused = false;
 }
 
 Renderer::~Renderer()
@@ -69,7 +70,7 @@ void Renderer::setScene(Scene *scene)
     _scene = scene;
 }
 
-void Renderer::startRendering()
+void Renderer::render()
 {
     if (!_camera || !_scene) {
         return ;
@@ -78,19 +79,44 @@ void Renderer::startRendering()
     _image.fill(Qt::black);
     _stopThread = false;
     _isRendering = true;
+    _isPaused = false;
     _raytracerThread = new std::thread(&Renderer::_raytrace, this);
+}
+
+void Renderer::play()
+{
+    if (_isRendering && _isPaused) {
+        _pauseMutex.unlock();
+        _isPaused = false;
+    }
+}
+
+void Renderer::pause()
+{
+    if (_isRendering && !_isPaused) {
+        _pauseMutex.lock();
+        _isPaused = true;
+    }
 }
 
 void Renderer::stopRendering()
 {
     if (_isRendering) {
         _stopThread = true;
+        if (_isPaused) {
+            play();
+        }
     }
 }
 
 bool Renderer::isRendering() const
 {
     return _isRendering;
+}
+
+bool Renderer::isPaused() const
+{
+    return _isPaused;
 }
 
 void Renderer::saveImage(const QString &filename)
@@ -100,8 +126,8 @@ void Renderer::saveImage(const QString &filename)
 
 int Renderer::elapsedTime() const
 {
-    if (isRendering()) {
-        return _renderingTime.elapsed();
+    if (_isRendering && !_isPaused) {
+        return _elapsedTime + _renderingTime.elapsed();
     }
     return _elapsedTime;
 }
@@ -213,8 +239,11 @@ void Renderer::_raytrace()
         _computingThreads.clear();
         _renderingTasks.clear();
         ++_sampleNumber;
+        _elapsedTime += _renderingTime.elapsed();
+        _pauseMutex.lock();
+        _pauseMutex.unlock();
+        _renderingTime.restart();
     }
-    _elapsedTime += _renderingTime.elapsed();
     emit renderingFinished();
 
     _isRendering = false;

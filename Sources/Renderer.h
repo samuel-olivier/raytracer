@@ -31,10 +31,13 @@ public:
     Scene*  scene() const;
     void    setScene(Scene* scene);
 
-    void    startRendering();
+    void    render();
+    void    play();
+    void    pause();
     void    stopRendering();
 
     bool    isRendering() const;
+    bool    isPaused() const;
 
     void    saveImage(QString const& filename);
 
@@ -71,6 +74,8 @@ private:
     std::atomic<bool>   _stopThread;
 
     std::atomic<bool>   _isRendering;
+    QMutex              _pauseMutex;
+    std::atomic<bool>   _isPaused;
 
     QMutex              _renderingTimeMutex;
     QTime               _renderingTime;

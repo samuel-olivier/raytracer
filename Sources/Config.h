@@ -55,10 +55,13 @@ public:
     float   refractionIndex() const;
     void    setRefractionIndex(float refractionIndex);
 
-    float       defaultCameraVerticalFOV() const;
-    float       defaultCameraAspectRatio() const;
-    float       defaultCameraAperture() const;
-    float       defaultCameraFocusPlane() const;
+    float   defaultCameraVerticalFOV() const;
+    float   defaultCameraAspectRatio() const;
+    float   defaultCameraAperture() const;
+    float   defaultCameraFocusPlane() const;
+
+    int     defaultImageWidth() const;
+    int     defaultImageHeight() const;
 
 private:
     Config();
@@ -85,6 +88,9 @@ private:
     float       _defaultCameraAspectRatio;
     float       _defaultCameraAperture;
     float       _defaultCameraFocusPlane;
+
+    int         _defaultImageWidth;
+    int         _defaultImageHeight;
 };
 
 #endif // CONFIG_H

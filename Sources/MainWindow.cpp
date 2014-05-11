@@ -32,10 +32,8 @@ MainWindow::MainWindow(QWidget *parent) :
     onLoadScene();
 
     connect(_ui->action_Save, SIGNAL(triggered()), SLOT(onSaveImage()));
-    connect(_ui->action_Open, SIGNAL(triggered()), SLOT(onLoadFile()));
     connect(_ui->action_Play_Pause, SIGNAL(triggered()), SLOT(onPlayPause()));
     connect(_ui->action_Stop, SIGNAL(triggered()), SLOT(onStop()));
-    connect(_ui->action_Resize, SIGNAL(triggered()), SLOT(onResizeImage()));
 
     connect(_ui->sceneNames, SIGNAL(currentIndexChanged(QString)), SLOT(onLoadScene()));
 
@@ -62,41 +60,31 @@ void MainWindow::onSaveImage()
     }
 }
 
-void MainWindow::onLoadFile()
-{
-    QString filename = QFileDialog::getOpenFileName(this, "Open Scene", config->rootDir(), "Scene Files (*.obj *.3ds);;All Files (*.*)");
-
-    if (!filename.isEmpty()) {
-        sceneGenerator->loadFile(filename, _ui->renderer);
-    }
-}
-
 void MainWindow::onPlayPause()
 {
     if (!_ui->renderer->isRendering()) {
         _loadConfig();
-        _ui->renderer->startRendering();
+        _ui->renderer->render();
+        _ui->action_Play_Pause->setToolTip("Pause");
+        _ui->action_Play_Pause->setIcon(QIcon(":/Resources/pause.png"));
+        logger->showMessage("Rendering...");
+    } else if (_ui->renderer->isPaused()) {
+        _ui->renderer->play();
+        _ui->action_Play_Pause->setToolTip("Pause");
+        _ui->action_Play_Pause->setIcon(QIcon(":/Resources/pause.png"));
+        logger->showMessage("Rendering...");
+    } else {
+        _ui->renderer->pause();
+        _ui->action_Play_Pause->setToolTip("Play");
+        _ui->action_Play_Pause->setIcon(QIcon(":/Resources/play.png"));
+        logger->showMessage("Rendering paused");
     }
 }
 
 void MainWindow::onStop()
 {
     _ui->renderer->stopRendering();
-    _ui->action_Play_Pause->setText("Play");
-}
-
-void MainWindow::onResizeImage()
-{
-    QSize current = _ui->renderer->imageSize();
-    bool ok;
-    int w = QInputDialog::getInt(this, "Image width", "Enter the new image width", current.width(), 1, 1e5, 1, &ok);
-    if (ok) {
-        int h = QInputDialog::getInt(this, "Image height", "Enter the new image height", current.height(), 1, 1e5, 1, &ok);
-        if (ok) {
-            _ui->renderer->stopRendering();
-            _ui->renderer->setImageSize(w, h);
-        }
-    }
+    _ui->action_Play_Pause->setText("Render");
 }
 
 void MainWindow::onLoadScene()
@@ -155,6 +143,8 @@ void MainWindow::_loadScene(const QString &scene)
     _ui->aspectRatio->setValue(_ui->renderer->camera()->aspectRatio());
     _ui->aperture->setValue(_ui->renderer->camera()->aperture());
     _ui->focalPlane->setValue(_ui->renderer->camera()->focalPlane());
+    _ui->imageWidth->setValue(_ui->renderer->imageSize().width());
+    _ui->imageHeight->setValue(_ui->renderer->imageSize().height());
 }
 
 void MainWindow::_loadConfig()
@@ -186,6 +176,8 @@ void MainWindow::_loadConfig()
     _ui->renderer->camera()->set(_ui->verticalFov->value(), _ui->aspectRatio->value());
     _ui->renderer->camera()->setAperture(_ui->aperture->value());
     _ui->renderer->camera()->setFocalPlane(_ui->focalPlane->value());
+
+    _ui->renderer->setImageSize(_ui->imageWidth->value(), _ui->imageHeight->value());
 }
 
 void MainWindow::_setConfig()
@@ -222,4 +214,7 @@ void MainWindow::_setConfig()
     _ui->aspectRatio->setValue(_ui->renderer->camera()->aspectRatio());
     _ui->aperture->setValue(_ui->renderer->camera()->aperture());
     _ui->focalPlane->setValue(_ui->renderer->camera()->focalPlane());
+
+    _ui->imageWidth->setValue(_ui->renderer->imageSize().width());
+    _ui->imageHeight->setValue(_ui->renderer->imageSize().height());
 }

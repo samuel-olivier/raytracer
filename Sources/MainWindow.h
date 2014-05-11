@@ -19,10 +19,8 @@ public:
 
 public slots:
     void    onSaveImage();
-    void    onLoadFile();
     void    onPlayPause();
     void    onStop();
-    void    onResizeImage();
     void    onLoadScene();
 
     void    onRenderingStarted();

@@ -38,7 +38,7 @@ SceneGenerator* SceneGenerator::_instance = 0;
 
 SceneGenerator::SceneGenerator()
 {
-    _scenes.append(QPair<QString, Loader>("Test", &SceneGenerator::_loadSceneTest));
+    _scenes.append(QPair<QString, Loader>("Env Map", &SceneGenerator::_loadEnvMap));
 
     _scenes.append(QPair<QString, Loader>("Project 1 - Cubes", &SceneGenerator::_loadProject1_Cubes));
     _scenes.append(QPair<QString, Loader>("Project 1 - Spheres", &SceneGenerator::_loadProject1_Spheres));
@@ -54,7 +54,8 @@ SceneGenerator::SceneGenerator()
     _scenes.append(QPair<QString, Loader>("Many Dragons", &SceneGenerator::_loadManyDragons));
     _scenes.append(QPair<QString, Loader>("Many Teapots", &SceneGenerator::_loadManyTeapots));
     _scenes.append(QPair<QString, Loader>("Big", &SceneGenerator::_loadBig));
-    _scenes.append(QPair<QString, Loader>("Env Map", &SceneGenerator::_loadEnvMap));
+
+    _scenes.append(QPair<QString, Loader>("Test", &SceneGenerator::_loadSceneTest));
 }
 
 SceneGenerator::~SceneGenerator()
@@ -85,61 +86,6 @@ void SceneGenerator::loadScene(const QString &name, Renderer *renderer)
     logger->writeError(QString("No such scene : '%1'").arg(name));
 }
 
-void SceneGenerator::loadFile(const QString &filename, Renderer *renderer)
-{
-    Scene* scene = new Scene;
-    scene->setSky(new UniformSky(Color(0.8f, 0.8f, 1.0f)));
-
-    // Create camera
-    Camera* camera = renderer->camera();
-    camera->lookAt(QVector3D(0.0f, 50.0f, 200.0f), QVector3D(0.0f,50.0f,0.0f), config->yAxis());
-    camera->set(40.0f, 1.33f);
-
-    AssimpLoader loader;
-    QList<Mesh*> meshes;
-    loader.loadFile(filename, meshes);
-    for (Mesh* mesh : meshes) {
-        scene->addNode(mesh);
-    }
-
-    Plane* ground = new Plane;
-    ground->setPosition(QVector3D(0.0f, -1.5f, 0.0f));
-    scene->addNode(ground);
-
-    PointLight* lgt = new PointLight();
-    lgt->setBaseColor(Color(0.8f, 0.8f, 0.8f));
-    lgt->setIntensity(2.0f);
-    lgt->setPosition(QVector3D(0.0f, 1.0f, -1.0f));
-    scene->addNode(lgt);
-
-    lgt = new PointLight();
-    lgt->setBaseColor(Color(0.8f, 0.8f, 0.8f));
-    lgt->setIntensity(2.0f);
-    lgt->setPosition(QVector3D(-2.0f, 2.0f, 2.0f));
-    scene->addNode(lgt);
-
-    lgt = new PointLight();
-    lgt->setBaseColor(Color(1.0f, 0.2f, 0.2f));
-    lgt->setIntensity(4.0f);
-    lgt->setPosition(QVector3D(0.0f, 3.0f, -1.0f));
-    scene->addNode(lgt);
-
-    DirectionalLight* sunlgt = new DirectionalLight;
-    sunlgt->setBaseColor(Color(1.0f, 1.0f, 0.9f));
-    sunlgt->setIntensity(0.5f);
-    sunlgt->setDirection(QVector3D(-1.0f, -1.0f, -0.5f));
-    scene->addNode(sunlgt);
-
-    sunlgt = new DirectionalLight;
-    sunlgt->setBaseColor(Color(1.0f, 1.0f, 0.9f));
-    sunlgt->setIntensity(0.5f);
-    sunlgt->setDirection(QVector3D(1.0f, -1.0f, -0.5f));
-    scene->addNode(sunlgt);
-
-    renderer->setScene(scene);
-    renderer->setCamera(camera);
-}
-
 QList<QString> SceneGenerator::scenes() const
 {
     QList<QString> res;
@@ -161,6 +107,7 @@ void SceneGenerator::_loadProject1_Cubes(Renderer *renderer)
     Camera* camera = renderer->camera();
     camera->lookAt(QVector3D(2.0f, 2.0f, 5.0f), QVector3D(0.0f, 0.0f, 0.0f), config->yAxis());
     camera->set(40.0f, 1.33f);
+    renderer->setImageSize(800, 600);
 
     Scene* scene = new Scene();
     scene->setSky(new UniformSky(Color(0.8f, 0.9f, 1.0f)));
@@ -225,6 +172,7 @@ void SceneGenerator::_loadProject1_Spheres(Renderer *renderer)
     Camera* camera = renderer->camera();
     camera->lookAt(QVector3D(-0.75f, 0.25f, 5.0f), QVector3D(0.0f, 0.5f, 0.0f), config->yAxis());
     camera->set(40.0f, 1.33f);
+    renderer->setImageSize(800, 600);
 
     Scene* scene = new Scene;
     scene->setSky(new UniformSky(Color(0.8f, 0.8f, 1.0f)));
@@ -270,6 +218,7 @@ void SceneGenerator::_loadProject2_2Dragons(Renderer *renderer)
     Camera* camera = renderer->camera();
     camera->lookAt(QVector3D(-0.1f, 0.1f, 0.2f), QVector3D(-0.05f, 0.12f, 0.0f), config->yAxis());
     camera->set(40.0f, 1.33f);
+    renderer->setImageSize(800, 600);
 
     Scene* scene = new Scene;
     scene->setSky(new UniformSky(Color(0.8f, 0.8f, 1.0f)));
@@ -331,6 +280,7 @@ void SceneGenerator::_loadProject3_Standard(Renderer *renderer)
     Camera* camera = renderer->camera();
     camera->lookAt(QVector3D(-0.5f, 0.25f, -0.2f), QVector3D(0.0f, 0.15f, -0.15f), config->yAxis());
     camera->set(40.0f, 1.33f);
+    renderer->setImageSize(800, 600);
 
     Scene* scene = new Scene;
     scene->setSky(new UniformSky(Color(0.8f, 0.9f, 1.0f)));
@@ -412,6 +362,7 @@ void SceneGenerator::_loadProject3_Focus(Renderer *renderer)
     camera->set(40.0f, 1.33f);
     camera->setAperture(0.01f);
     camera->setFocalPlane(0.29f);
+    renderer->setImageSize(800, 600);
 
     Scene* scene = new Scene;
     scene->setSky(new UniformSky(Color(0.8f, 0.9f, 1.0f)));
@@ -491,6 +442,7 @@ void SceneGenerator::_loadProject3_Anim(Renderer *renderer)
     Camera* camera = renderer->camera();
     camera->lookAt(QVector3D(-0.5f, 0.25f, -0.2f), QVector3D(0.0f, 0.15f, -0.15f), config->yAxis());
     camera->set(40.0f, 1.33f);
+    renderer->setImageSize(800, 600);
 
     Scene* scene = new Scene;
     scene->setSky(new UniformSky(Color(0.8f, 0.9f, 1.0f)));
@@ -577,6 +529,7 @@ void SceneGenerator::_loadCube(Renderer *renderer)
     Camera* camera = renderer->camera();
     camera->lookAt(QVector3D(1.0f, 2.0f, 3.0f), QVector3D(0.0f, 0.0f, 0.0f), config->yAxis());
     camera->set(40.0f, 1.33f);
+    renderer->setImageSize(800, 600);
 
     Scene* scene = new Scene;
     scene->setSky(new UniformSky(Color(0.8f, 0.8f, 1.0f)));
@@ -626,8 +579,8 @@ void SceneGenerator::_loadTeapot(Renderer *renderer)
 
     Camera* camera = renderer->camera();
     camera->lookAt(QVector3D(0.0f, 0.5f, 2.0f), QVector3D(0.0f, 0.5f, 0.0f), config->yAxis());
-//    camera->lookAt(QVector3D(0.0f, 50.0f, 200.0f), QVector3D(0.0f, 50.0f, 0.0f), config->yAxis());
     camera->set(40.0f, 1.33f);
+    renderer->setImageSize(800, 600);
 
     Scene* scene = new Scene;
     scene->setSky(new UniformSky(Color(0.8f, 0.8f, 1.0f)));
@@ -693,6 +646,7 @@ void SceneGenerator::_loadCornelBox(Renderer *renderer)
     Camera* camera = renderer->camera();
     camera->lookAt(QVector3D(0.0f, 0.75f, 3.0f), QVector3D(0.0f, 0.75f, 0.0f), config->yAxis());
     camera->set(40.0f, 1.33f);
+    renderer->setImageSize(800, 600);
 
     Scene* scene = new Scene;
     scene->setSky(new UniformSky(Color(0.2f, 0.2f, 0.2f)));
@@ -756,6 +710,7 @@ void SceneGenerator::_loadCornelDragon(Renderer *renderer)
 
     Scene* scene = new Scene;
     scene->setSky(new UniformSky(Color(0.0f, 0.0f, 0.0f)));
+    renderer->setImageSize(800, 600);
 
     MetalMaterial* metal = new MetalMaterial();
     metal->setN(0.37f);
@@ -824,6 +779,7 @@ void SceneGenerator::_loadManyDragons(Renderer *renderer)
     Camera* camera = renderer->camera();
     camera->lookAt(QVector3D(0.0f, 0.3f, 0.5f), QVector3D(0.0f, 0.0f, -1.0f), config->yAxis());
     camera->set(40.0f, 1.33f);
+    renderer->setImageSize(800, 600);
 
     Scene* scene = new Scene;
     scene->setSky(new UniformSky(Color(0.8f, 0.8f, 1.0f)));
@@ -948,6 +904,7 @@ void SceneGenerator::_loadManyTeapots(Renderer *renderer)
 
     camera->lookAt(QVector3D(0.0f, 10.0f, 20.0f), QVector3D(0.0f, 5.0f, 0.0f), config->yAxis());
     camera->set(40.0f, 800.0f / 600.0f);
+    renderer->setImageSize(800, 600);
 
     renderer->setScene(scene);
     renderer->setCamera(camera);
@@ -960,6 +917,7 @@ void SceneGenerator::_loadBig(Renderer *renderer)
     Camera* camera = renderer->camera();
     camera->lookAt(QVector3D(0.0f, 2.0f, -5.7f), QVector3D(0.0f, 0.0f, 0.0f), config->yAxis());
     camera->set(40.0f, 1.33f);
+    renderer->setImageSize(800, 600);
 
     Scene* scene = new Scene;
     scene->setSky(new UniformSky(Color(0.0f, 0.0f, 0.0f)));
@@ -1148,8 +1106,9 @@ void SceneGenerator::_loadEnvMap(Renderer *renderer)
     Config::Epsilon = 0.0001f;
 
     Camera* camera = renderer->camera();
-    camera->lookAt(QVector3D(1.0f, 1.0f, -5.7f), QVector3D(0.0f, 0.3f, 0.0f), config->yAxis());
-    camera->set(40.0f, 1.33f);
+    camera->lookAt(QVector3D(-0.7f, 1.2f, -4.5f), QVector3D(0.0f, 0.3f, 0.0f), config->yAxis());
+    camera->set(40.0f, 1.777f);
+    renderer->setImageSize(960, 540);
 
     Scene* scene = new Scene;
     scene->setSky(new SphereSky(config->rootDir() + "/sphereMap_joshua.jpg"));
@@ -1210,8 +1169,9 @@ void SceneGenerator::_loadEnvMap(Renderer *renderer)
     AshikhminMaterial* sphereMat = new AshikhminMaterial;
     sphereMat->setDiffuseLevel(0.0f);
     sphereMat->setSpecularLevel(1.0f);
-    sphereMat->setSpecularColor(Color::WHITE);
-    ImageTexture* roughness = new ImageTexture(config->rootDir() + "earth1.bmp");
+    sphereMat->setSpecularColor(Color(1.0f, 1.0f, 1.0f));
+//    sphereMat->setSpecularColor(Color(0.44f, 0.92f, 0.46f));
+    ImageTexture* roughness = new ImageTexture(config->rootDir() + "earth2.bmp", 10000.0f);
     sphereMat->setRoughness(roughness, roughness);
     Sphere* sphere = new Sphere;
     sphere->setRadius(0.35f);
@@ -1219,7 +1179,7 @@ void SceneGenerator::_loadEnvMap(Renderer *renderer)
     Instance* sphereInst = new Instance(sphere);
     mtx.setToIdentity();
     mtx.translate(1.4f, -0.35f, -0.5f);
-    mtx.rotate(270.0f, 0.0f, 1.0f, 0.0f);
+    mtx.rotate(290.0f, 0.0f, 1.0f, 0.0f);
     sphereInst->setMatrix(mtx);
     scene->addNode(sphereInst);
 

@@ -32,12 +32,10 @@
     <bool>false</bool>
    </attribute>
    <addaction name="action_Save"/>
-   <addaction name="action_Open"/>
    <addaction name="separator"/>
    <addaction name="action_Play_Pause"/>
    <addaction name="separator"/>
    <addaction name="action_Stop"/>
-   <addaction name="action_Resize"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <widget class="QDockWidget" name="dockWidget">
@@ -73,100 +71,13 @@
         <string>Rendering</string>
        </property>
        <layout class="QGridLayout" name="gridLayout_2">
-        <item row="1" column="1">
-         <widget class="QSpinBox" name="threadNumber">
+        <item row="4" column="1">
+         <widget class="QSpinBox" name="antialiasingResolution">
           <property name="minimum">
            <number>1</number>
           </property>
           <property name="maximum">
-           <number>10</number>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="1">
-         <widget class="QSpinBox" name="lightSampleNumber">
-          <property name="minimum">
-           <number>1</number>
-          </property>
-          <property name="maximum">
-           <number>400</number>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="0" colspan="2">
-         <widget class="QCheckBox" name="shadow">
-          <property name="focusPolicy">
-           <enum>Qt::NoFocus</enum>
-          </property>
-          <property name="text">
-           <string>Shadow</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-          <property name="tristate">
-           <bool>false</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="5" column="1">
-         <widget class="QComboBox" name="antialiasingType"/>
-        </item>
-        <item row="2" column="0">
-         <widget class="QLabel" name="label_2">
-          <property name="text">
-           <string>Task #</string>
-          </property>
-         </widget>
-        </item>
-        <item row="5" column="0">
-         <widget class="QLabel" name="label_5">
-          <property name="text">
-           <string>Antialiasing</string>
-          </property>
-         </widget>
-        </item>
-        <item row="8" column="0">
-         <widget class="QLabel" name="label_7">
-          <property name="text">
-           <string>Refraction Index</string>
-          </property>
-         </widget>
-        </item>
-        <item row="8" column="1">
-         <widget class="QDoubleSpinBox" name="refractionIndex">
-          <property name="decimals">
-           <number>4</number>
-          </property>
-          <property name="minimum">
-           <double>0.000100000000000</double>
-          </property>
-          <property name="maximum">
-           <double>99.999899999999997</double>
-          </property>
-          <property name="singleStep">
-           <double>0.010000000000000</double>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0">
-         <widget class="QLabel" name="label">
-          <property name="text">
-           <string>Thread #</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="0">
-         <widget class="QLabel" name="label_3">
-          <property name="text">
-           <string>Light Sample #</string>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="0">
-         <widget class="QLabel" name="label_4">
-          <property name="text">
-           <string>Antialiasing Resolution</string>
+           <number>100</number>
           </property>
          </widget>
         </item>
@@ -180,20 +91,17 @@
           </property>
          </widget>
         </item>
-        <item row="4" column="1">
-         <widget class="QSpinBox" name="antialiasingResolution">
-          <property name="minimum">
-           <number>1</number>
-          </property>
-          <property name="maximum">
-           <number>100</number>
-          </property>
-         </widget>
-        </item>
         <item row="6" column="0">
          <widget class="QLabel" name="label_6">
           <property name="text">
            <string>Path Depth</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="0">
+         <widget class="QLabel" name="label_4">
+          <property name="text">
+           <string>Antialiasing Resolution</string>
           </property>
          </widget>
         </item>
@@ -221,6 +129,107 @@
           </property>
           <property name="maximum">
            <number>1000</number>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="QSpinBox" name="lightSampleNumber">
+          <property name="minimum">
+           <number>1</number>
+          </property>
+          <property name="maximum">
+           <number>400</number>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QSpinBox" name="threadNumber">
+          <property name="minimum">
+           <number>1</number>
+          </property>
+          <property name="maximum">
+           <number>10</number>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="label_2">
+          <property name="text">
+           <string>Task #</string>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="0">
+         <widget class="QLabel" name="label_5">
+          <property name="text">
+           <string>Antialiasing</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0" colspan="2">
+         <widget class="QCheckBox" name="shadow">
+          <property name="focusPolicy">
+           <enum>Qt::NoFocus</enum>
+          </property>
+          <property name="text">
+           <string>Shadow</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+          <property name="tristate">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="1">
+         <widget class="QComboBox" name="antialiasingType"/>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLabel" name="label_3">
+          <property name="text">
+           <string>Light Sample #</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="label">
+          <property name="text">
+           <string>Thread #</string>
+          </property>
+         </widget>
+        </item>
+        <item row="8" column="0">
+         <widget class="QLabel" name="label_17">
+          <property name="text">
+           <string>Image Width</string>
+          </property>
+         </widget>
+        </item>
+        <item row="9" column="0">
+         <widget class="QLabel" name="label_18">
+          <property name="text">
+           <string>Image Height</string>
+          </property>
+         </widget>
+        </item>
+        <item row="8" column="1">
+         <widget class="QSpinBox" name="imageWidth">
+          <property name="minimum">
+           <number>1</number>
+          </property>
+          <property name="maximum">
+           <number>100000</number>
+          </property>
+         </widget>
+        </item>
+        <item row="9" column="1">
+         <widget class="QSpinBox" name="imageHeight">
+          <property name="minimum">
+           <number>1</number>
+          </property>
+          <property name="maximum">
+           <number>100000</number>
           </property>
          </widget>
         </item>
@@ -324,6 +333,29 @@
           </property>
          </widget>
         </item>
+        <item row="5" column="0">
+         <widget class="QLabel" name="label_7">
+          <property name="text">
+           <string>Refraction Index</string>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="1">
+         <widget class="QDoubleSpinBox" name="refractionIndex">
+          <property name="decimals">
+           <number>4</number>
+          </property>
+          <property name="minimum">
+           <double>0.000100000000000</double>
+          </property>
+          <property name="maximum">
+           <double>99.999899999999997</double>
+          </property>
+          <property name="singleStep">
+           <double>0.010000000000000</double>
+          </property>
+         </widget>
+        </item>
        </layout>
       </widget>
      </item>
@@ -411,6 +443,10 @@
    </widget>
   </widget>
   <action name="action_Save">
+   <property name="icon">
+    <iconset resource="../ui.qrc">
+     <normaloff>:/Resources/save.png</normaloff>:/Resources/save.png</iconset>
+   </property>
    <property name="text">
     <string>&amp;Save</string>
    </property>
@@ -418,36 +454,31 @@
     <string>Ctrl+S</string>
    </property>
   </action>
-  <action name="action_Open">
-   <property name="text">
-    <string>&amp;Open</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+O</string>
-   </property>
-  </action>
   <action name="action_Play_Pause">
+   <property name="icon">
+    <iconset resource="../ui.qrc">
+     <normaloff>:/Resources/play.png</normaloff>:/Resources/play.png</iconset>
+   </property>
    <property name="text">
-    <string>&amp;Play</string>
+    <string>&amp;Render</string>
    </property>
    <property name="shortcut">
     <string>Space</string>
    </property>
   </action>
   <action name="action_Stop">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../ui.qrc">
+     <normaloff>:/Resources/stop.png</normaloff>:/Resources/stop.png</iconset>
+   </property>
    <property name="text">
     <string>S&amp;top</string>
    </property>
    <property name="shortcut">
     <string>Esc</string>
-   </property>
-  </action>
-  <action name="action_Resize">
-   <property name="text">
-    <string>Resize</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+R</string>
    </property>
   </action>
  </widget>
@@ -474,10 +505,20 @@
   <tabstop>antialiasingResolution</tabstop>
   <tabstop>antialiasingType</tabstop>
   <tabstop>pathDepth</tabstop>
+  <tabstop>pathSampleNumber</tabstop>
+  <tabstop>imageWidth</tabstop>
+  <tabstop>imageHeight</tabstop>
+  <tabstop>epsilon</tabstop>
+  <tabstop>verticalFov</tabstop>
+  <tabstop>aspectRatio</tabstop>
+  <tabstop>aperture</tabstop>
+  <tabstop>focalPlane</tabstop>
   <tabstop>refractionIndex</tabstop>
   <tabstop>renderer</tabstop>
   <tabstop>console</tabstop>
  </tabstops>
- <resources/>
+ <resources>
+  <include location="../ui.qrc"/>
+ </resources>
  <connections/>
 </ui>

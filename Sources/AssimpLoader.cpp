@@ -147,7 +147,7 @@ void AssimpLoader::_loadMaterials(const aiScene *scene)
         return ;
     }
     _materials.resize(scene->mNumMaterials);
-    for (int i = 0; i < scene->mNumMaterials; ++i) {
+    for (unsigned int i = 0; i < scene->mNumMaterials; ++i) {
         aiMaterial* mtl = scene->mMaterials[i];
         LambertMaterial* mat = new LambertMaterial;
         aiString path;
@@ -227,7 +227,7 @@ void AssimpLoader::_loadAssimpNode(const aiScene *scene, aiNode *assimpNode, int
                 Triangle* triangle = new Triangle(vertices[assimpMesh->mFaces[j].mIndices[0]],
                         vertices[assimpMesh->mFaces[j].mIndices[1]],
                         vertices[assimpMesh->mFaces[j].mIndices[2]]);
-                if (assimpMesh->mMaterialIndex >= 0 && assimpMesh->mMaterialIndex < _materials.size()) {
+                if (assimpMesh->mMaterialIndex >= 0 && assimpMesh->mMaterialIndex < (unsigned int)_materials.size()) {
                     triangle->setMaterial(_materials[assimpMesh->mMaterialIndex]);
                 }
                 triangles[j] = triangle;

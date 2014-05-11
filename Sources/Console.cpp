@@ -32,9 +32,11 @@ void Console::writeError(const QString &message)
 void Console::writeSeparator()
 {
     insertHtml("<div>-----------------------------------<br></div>");
+    QTextEdit::ensureCursorVisible();
 }
 
 void Console::_appendMessage(const QColor &color, const QString &header, const QString &message)
 {
     insertHtml(QString("<div style=\"color: %1;\"><b>%2 : </b><span>%3</span><br></div>").arg(color.name(), header, message));
+    QTextEdit::ensureCursorVisible();
 }
