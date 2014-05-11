@@ -44,6 +44,7 @@ private:
     void    _loadManyDragons(Renderer* renderer);
     void    _loadManyTeapots(Renderer* renderer);
     void    _loadBig(Renderer* renderer);
+    void    _loadEnvMap(Renderer* renderer);
 
     float   _rangeRand(float min,float max);
 

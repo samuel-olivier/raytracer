@@ -17,6 +17,7 @@
 #include "Utils.h"
 #include "Config.h"
 #include "Material.h"
+#include "Sky.h"
 
 Renderer::Renderer(QWidget *parent)
     : QWidget(parent), _camera(0), _scene(0), _raytracerThread(0)
@@ -327,7 +328,7 @@ void Renderer::_throwRay(const Ray &ray, Intersection &hit)
             }
         }
     } else {
-        hit.shade = _scene->skyColor();
+        _scene->sky()->evaluate(ray.direction, hit.shade);
     }
 }
 

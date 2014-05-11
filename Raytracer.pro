@@ -49,7 +49,10 @@ SOURCES += main.cpp\
     PlasticMaterial.cpp \
     AshikhminMaterial.cpp \
     Texture.cpp \
-    ImageTexture.cpp
+    ImageTexture.cpp \
+    Sky.cpp \
+    UniformSky.cpp \
+    SphereSky.cpp
 
 HEADERS  += MainWindow.h \
     Renderer.h \
@@ -88,7 +91,10 @@ HEADERS  += MainWindow.h \
     AshikhminMaterial.h \
     Texture.h \
     UniformTexture.hpp \
-    ImageTexture.h
+    ImageTexture.h \
+    Sky.h \
+    UniformSky.h \
+    SphereSky.h
 
 FORMS    += MainWindow.ui
 

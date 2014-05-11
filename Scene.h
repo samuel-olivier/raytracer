@@ -9,6 +9,7 @@
 
 class Node;
 class Light;
+class Sky;
 
 class Scene
 {
@@ -24,8 +25,8 @@ public:
 
     void    clear();
 
-    const Color&    skyColor() const;
-    void            setSkyColor(Color const& skyColor);
+    Sky*    sky() const;
+    void    setSky(Sky* sky);
 
     bool            intersect(Ray const& ray, Intersection& hit);
 
@@ -33,7 +34,7 @@ private:
     void    _recursiveAdd(Node* current);
 
     Node*           _root;
-    Color          _skyColor;
+    Sky*            _sky;
     QList<Node*>    _nodes;
     QList<Light*>   _lights;
 };

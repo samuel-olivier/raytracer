@@ -55,10 +55,11 @@ void ImageTexture::evaluateColor(float x, float y, Color &value)
 void ImageTexture::evaluateFloat(float x, float y, float &value)
 {
     if (_hasImage) {
+        y *= -1;
         wrapCoordinates(x, y);
-        y = 1.0f - y;
-        int xCoord = (x < 0) ? 0 : ((x >= 1.0f) ? (_image.width() - 1) : int(x * _image.width()));
-        int yCoord = (y < 0) ? 1 : ((y >= 1.0f) ? (_image.height() - 1) : int(y * _image.height()));
+        int xCoord = (x <= 0) ? 0 : ((x >= 1.0f) ? (_image.width() - 1) : int(x * _image.width()));
+        int yCoord = (y <= 0) ? 0 : ((y >= 1.0f) ? (_image.height() - 1) : int(y * _image.height()));
+//        int yCoord = (y < 0) ? 1 : ((y >= 1.0f) ? (_image.height() - 1) : int(y * _image.height()));
         QColor color = _image.pixel(xCoord, yCoord);
         Color c;
         c.Set(color.redF(), color.greenF(), color.blueF());

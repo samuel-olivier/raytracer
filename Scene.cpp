@@ -5,7 +5,8 @@
 #include "Node.h"
 #include "Light.h"
 
-Scene::Scene() : _root(new Node(NULL))
+Scene::Scene()
+    : _root(new Node(0)), _sky(0)
 {
     _root->setName("Root");
     _root->setType("Scene");
@@ -43,14 +44,14 @@ void Scene::clear()
     _root->setName("Root");
 }
 
-const Color &Scene::skyColor() const
+Sky *Scene::sky() const
 {
-    return _skyColor;
+    return _sky;
 }
 
-void Scene::setSkyColor(const Color &skyColor)
+void Scene::setSky(Sky* sky)
 {
-    _skyColor = skyColor;
+    _sky = sky;
 }
 
 bool Scene::intersect(const Ray &ray, Intersection &hit)
