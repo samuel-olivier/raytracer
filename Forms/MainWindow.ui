@@ -463,7 +463,7 @@
     <string>&amp;Render</string>
    </property>
    <property name="shortcut">
-    <string>Space</string>
+    <string>Ctrl+R, Space</string>
    </property>
   </action>
   <action name="action_Stop">

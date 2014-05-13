@@ -92,7 +92,7 @@ float Material::cookTorrance(const QVector3D &v, const QVector3D &n, const QVect
     float alpha = qMin(0.999, qAcos(nh));
     float G = qMin(1.0f, qMin(2.0f * nh * nv / vh, 2.0f * nh * nL / vh));
     float D = qExp(-qPow(qTan(alpha), 2.0f) / m2) / (m2 * qPow(qCos(alpha), 4.0f));
-    return F * G * D / (4.0f * M_PI * nL * nv);
+    return qMin(24.0f, F * G * D / (4.0f * float(M_PI) * nL * nv));
 }
 
 void Material::ashikhmin(const QVector3D &k1, const QVector3D &k2, const QVector3D &nTmp, const QVector3D &u, const QVector3D &v, float rU, float rV, float s, float d, float &Ps, float &Pd)
@@ -115,7 +115,7 @@ void Material::ashikhmin(const QVector3D &k1, const QVector3D &k2, const QVector
 
     float Ps1 = qSqrt((rU + 1) * (rV + 1)) / (8.0f * M_PI);
     float Ps2 = qPow(nh, ((rU * hu * hu + rV * hv * hv) / (1.0f - nh * nh))) / (kh * qMax(nk1, nk2));
-    Ps = qMin(42.0f, Ps1 * Ps2 * F);
+    Ps = qMin(24.0f, Ps1 * Ps2 * F);
 
     float Pd1 = ((28.0f * d) / (23.0f * M_PI)) * (1.0f - s);
     float Pd2 = 1.0f - qPow(1.0f - 0.5f * nk1, 5.0f);

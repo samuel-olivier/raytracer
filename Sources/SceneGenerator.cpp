@@ -38,7 +38,6 @@ SceneGenerator* SceneGenerator::_instance = 0;
 
 SceneGenerator::SceneGenerator()
 {
-    _scenes.append(QPair<QString, Loader>("Env Map", &SceneGenerator::_loadEnvMap));
 
     _scenes.append(QPair<QString, Loader>("Project 1 - Cubes", &SceneGenerator::_loadProject1_Cubes));
     _scenes.append(QPair<QString, Loader>("Project 1 - Spheres", &SceneGenerator::_loadProject1_Spheres));
@@ -53,7 +52,9 @@ SceneGenerator::SceneGenerator()
     _scenes.append(QPair<QString, Loader>("Dragon in Cornell Box", &SceneGenerator::_loadCornellDragon));
     _scenes.append(QPair<QString, Loader>("Many Dragons", &SceneGenerator::_loadManyDragons));
     _scenes.append(QPair<QString, Loader>("Many Teapots", &SceneGenerator::_loadManyTeapots));
+
     _scenes.append(QPair<QString, Loader>("Big", &SceneGenerator::_loadBig));
+    _scenes.append(QPair<QString, Loader>("Env Map", &SceneGenerator::_loadEnvMap));
 
     _scenes.append(QPair<QString, Loader>("Test", &SceneGenerator::_loadSceneTest));
 }
@@ -111,7 +112,7 @@ void SceneGenerator::_loadProject1_Cubes(Renderer *renderer)
 
     Scene* scene = new Scene();
     scene->setSky(new UniformSky(Color(0.8f, 0.9f, 1.0f)));
-//    scene->setSky(new SphereSky(config->sceneResourcesDir() + "/sphereMap_joshua.jpg"));
+//    scene->setSky(new SphereSky(config->sceneResourcesDir() + "/Textures/sphereMap_joshua.jpg"));
 
     LambertMaterial* cubeMat = new LambertMaterial;
     cubeMat->setDiffuseColor(Color(0.6f, 0.6f, 0.6f));
@@ -163,11 +164,6 @@ void SceneGenerator::_loadProject1_Spheres(Renderer *renderer)
     Config::Epsilon = 0.001f;
 
     Texture* t = new UniformTexture<float>(5.0f);
-    Color tmp;
-    t->evaluateColor(0.0f, 0.0f, tmp);
-    float f;
-    t->evaluateFloat(0.0f, 0.0f, f);
-    qDebug() << tmp.Red << tmp.Green << tmp.Blue << f;
 
     Camera* camera = renderer->camera();
     camera->lookAt(QVector3D(-0.75f, 0.25f, 5.0f), QVector3D(0.0f, 0.5f, 0.0f), config->yAxis());
@@ -179,12 +175,10 @@ void SceneGenerator::_loadProject1_Spheres(Renderer *renderer)
 
     LambertMaterial* sMat = new LambertMaterial;
 //    sMat->setDiffuseColor(Color(0.8f, 0.8f, 0.8f));
-    sMat->setDiffuseColor(new ImageTexture(config->sceneResourcesDir() + "/earth.jpg"));
+    sMat->setDiffuseColor(new ImageTexture(config->sceneResourcesDir() + "/Textures/earth_color.jpg"));
 
     LambertMaterial* gMat = new LambertMaterial;
-    gMat->setDiffuseColor(new ImageTexture(config->sceneResourcesDir() + "/checkerboard.png"));
-    //    gMat->setDiffuseColor(Color(0.3f, 0.3f, 0.3f));
-    //    mat->loadTexture(config->sceneResourcesDir() + "/earth.jpg");
+    gMat->setDiffuseColor(new ImageTexture(config->sceneResourcesDir() + "/Textures/checkerboard.png"));
 
     Plane* ground = new Plane;
     ground->setMaterial(gMat);
@@ -225,7 +219,7 @@ void SceneGenerator::_loadProject2_2Dragons(Renderer *renderer)
 
     AssimpLoader loader;
     QList<Mesh*> meshes;
-    loader.loadFile1(config->sceneResourcesDir() + "/Dragon/dragon.ply", meshes);
+    loader.loadFile1(config->sceneResourcesDir() + "Models/Dragon/dragon.ply", meshes);
     QTime time;
     time.restart();
     Mesh* dragon = meshes.first();
@@ -318,7 +312,7 @@ void SceneGenerator::_loadProject3_Standard(Renderer *renderer)
 
     AssimpLoader loader;
     QList<Mesh*> meshes;
-    loader.loadFile1(config->sceneResourcesDir() + "/Dragon/dragon.ply", meshes);
+    loader.loadFile1(config->sceneResourcesDir() + "Models/Dragon/dragon.ply", meshes);
     QTime time;
     time.restart();
     Mesh* dragon = meshes.first();
@@ -360,8 +354,8 @@ void SceneGenerator::_loadProject3_Focus(Renderer *renderer)
     Camera* camera = renderer->camera();
     camera->lookAt(QVector3D(-0.2f, 0.12f, 0.25f), QVector3D(0.0f, 0.15f, -0.15f), config->yAxis());
     camera->set(40.0f, 1.33f);
-    camera->setAperture(0.01f);
-    camera->setFocalPlane(0.29f);
+    camera->setAperture(0.003f);
+    camera->setFocalPlane(0.285f);
     renderer->setImageSize(800, 600);
 
     Scene* scene = new Scene;
@@ -400,7 +394,7 @@ void SceneGenerator::_loadProject3_Focus(Renderer *renderer)
 
     AssimpLoader loader;
     QList<Mesh*> meshes;
-    loader.loadFile1(config->sceneResourcesDir() + "/Dragon/dragon.ply", meshes);
+    loader.loadFile1(config->sceneResourcesDir() + "Models/Dragon/dragon.ply", meshes);
     QTime time;
     time.restart();
     Mesh* dragon = meshes.first();
@@ -480,7 +474,7 @@ void SceneGenerator::_loadProject3_Anim(Renderer *renderer)
 
     AssimpLoader loader;
     QList<Mesh*> meshes;
-    loader.loadFile1(config->sceneResourcesDir() + "/Dragon/dragon.ply", meshes);
+    loader.loadFile1(config->sceneResourcesDir() + "Models/Dragon/dragon.ply", meshes);
     QTime time;
     time.restart();
     Mesh* dragon = meshes.first();
@@ -536,7 +530,7 @@ void SceneGenerator::_loadCube(Renderer *renderer)
 
     AssimpLoader loader;
     QList<Mesh*> meshes;
-    loader.loadFile(config->sceneResourcesDir() + "/Cube/cube.obj", meshes);
+    loader.loadFile(config->sceneResourcesDir() + "Models/Cube/cube.obj", meshes);
     for (Mesh* mesh : meshes) {
         scene->addNode(mesh);
     }
@@ -596,7 +590,7 @@ void SceneGenerator::_loadTeapot(Renderer *renderer)
 
     AssimpLoader loader;
     QList<Mesh*> meshes;
-    loader.loadFile(config->sceneResourcesDir() + "/Teapot/teapot.obj", meshes);
+    loader.loadFile(config->sceneResourcesDir() + "Models/Teapot/teapot.obj", meshes);
     QTime time;
     time.restart();
     QVector<Node*> tmp;
@@ -670,6 +664,13 @@ void SceneGenerator::_loadCornellBox(Renderer *renderer)
     LambertMaterial* sp2 = new LambertMaterial();
     sp2->setDiffuseColor(Color(1.0f, 1.0f, 1.0f));
 
+    AshikhminMaterial* spRough = new AshikhminMaterial;
+    spRough->setDiffuseLevel(0.0f);
+    spRough->setSpecularLevel(1.0f);
+    spRough->setSpecularColor(Color(1.0f, 1.0f, 1.0f));
+    spRough->setRoughness(100.0f, 100.0f);
+
+
     PlasticMaterial* plastic = new PlasticMaterial();
     plastic->setDiffuseColor(Color(200.f / 255, 0.02f, 0.0f));
     plastic->setN(1.7f);
@@ -677,10 +678,10 @@ void SceneGenerator::_loadCornellBox(Renderer *renderer)
 
     AssimpLoader loader;
     QList<Mesh*> meshes;
-    loader.loadFile(config->sceneResourcesDir() + "/CornellBox/CornellBox-Sphere.obj", meshes);
+    loader.loadFile(config->sceneResourcesDir() + "Models/CornellBox/CornellBox-Sphere.obj", meshes);
     QTime time;
     time.restart();
-    meshes.at(0)->setMaterial(sp1);
+    meshes.at(0)->setMaterial(spRough);
     meshes.at(1)->setMaterial(sp2);
 
     for (Mesh* mesh : meshes) {
@@ -730,7 +731,7 @@ void SceneGenerator::_loadCornellDragon(Renderer *renderer)
 
     AssimpLoader loader;
     QList<Mesh*> meshes;
-    loader.loadFile(config->sceneResourcesDir() + "/CornellBox/CornellBox-Empty.obj", meshes);
+    loader.loadFile(config->sceneResourcesDir() + "Models/CornellBox/CornellBox-Empty.obj", meshes);
     QTime time;
     time.restart();
     for (Mesh* mesh : meshes) {
@@ -741,7 +742,7 @@ void SceneGenerator::_loadCornellDragon(Renderer *renderer)
     logger->writeInfo(QString("Cornell Box Tree Construction : %1 ms").arg(QString::number(time.elapsed())));
 
     meshes.clear();
-    loader.loadFile1(config->sceneResourcesDir() + "/Dragon/dragon.ply", meshes);
+    loader.loadFile1(config->sceneResourcesDir() + "Models/Dragon/dragon.ply", meshes);
     time.restart();
     Mesh* dragon = meshes.first();
     BoxTreeNode* tree = new BoxTreeNode;
@@ -786,7 +787,7 @@ void SceneGenerator::_loadManyDragons(Renderer *renderer)
 
     AssimpLoader loader;
     QList<Mesh*> meshes;
-    loader.loadFile(config->sceneResourcesDir() + "/Dragon/dragon.ply", meshes);
+    loader.loadFile(config->sceneResourcesDir() + "Models/Dragon/dragon.ply", meshes);
     QTime time;
     time.restart();
     Mesh* dragon = meshes.first();
@@ -847,7 +848,7 @@ void SceneGenerator::_loadManyTeapots(Renderer *renderer)
 
     AssimpLoader loader;
     QList<Mesh*> meshes;
-    loader.loadFile(config->sceneResourcesDir() + "/Teapot/teapot.obj", meshes);
+    loader.loadFile(config->sceneResourcesDir() + "Models/Teapot/teapot.obj", meshes);
 
     QTime time;
     time.restart();
@@ -926,7 +927,7 @@ void SceneGenerator::_loadBig(Renderer *renderer)
 
     AssimpLoader loader;
     QList<Mesh*> meshes;
-    loader.loadFile(config->sceneResourcesDir() + "/Teapot/teapot.obj", meshes);
+    loader.loadFile(config->sceneResourcesDir() + "Models/Teapot/teapot.obj", meshes);
     QTime time;
     time.restart();
     BoxTreeNode* teapot = new BoxTreeNode;
@@ -953,7 +954,7 @@ void SceneGenerator::_loadBig(Renderer *renderer)
     allSceneObjects << centerTeapot;
 
     meshes.clear();
-    loader.loadFile(config->sceneResourcesDir() + "/Dragon/dragon.ply", meshes);
+    loader.loadFile(config->sceneResourcesDir() + "Models/Dragon/dragon.ply", meshes);
     time.restart();
     Mesh* dragon = meshes.first();
     BoxTreeNode* dragonTree = new BoxTreeNode;
@@ -1111,7 +1112,7 @@ void SceneGenerator::_loadEnvMap(Renderer *renderer)
     renderer->setImageSize(960, 540);
 
     Scene* scene = new Scene;
-    scene->setSky(new SphereSky(config->sceneResourcesDir() + "/sphereMap_joshua.jpg"));
+    scene->setSky(new SphereSky(config->sceneResourcesDir() + "/Textures/sphereMap_joshua.jpg"));
 
     QVector<Node*> allSceneObjects;
 
@@ -1119,7 +1120,7 @@ void SceneGenerator::_loadEnvMap(Renderer *renderer)
     QList<Mesh*> meshes;
     QTime time;
     QMatrix4x4 mtx;
-    loader.loadFile(config->sceneResourcesDir() + "/Teapot/teapot.obj", meshes);
+    loader.loadFile(config->sceneResourcesDir() + "Models/Teapot/teapot.obj", meshes);
     time.restart();
     BoxTreeNode* teapot = new BoxTreeNode;
     QVector<Node*> teapotList;
@@ -1144,7 +1145,7 @@ void SceneGenerator::_loadEnvMap(Renderer *renderer)
     allSceneObjects << centerTeapot;
 
     meshes.clear();
-    loader.loadFile(config->sceneResourcesDir() + "/Dragon/dragon.ply", meshes);
+    loader.loadFile(config->sceneResourcesDir() + "Models/Dragon/dragon.ply", meshes);
     time.restart();
     Mesh* dragon = meshes.first();
     BoxTreeNode* dragonTree = new BoxTreeNode;
@@ -1171,7 +1172,7 @@ void SceneGenerator::_loadEnvMap(Renderer *renderer)
     sphereMat->setSpecularLevel(1.0f);
     sphereMat->setSpecularColor(Color(1.0f, 1.0f, 1.0f));
 //    sphereMat->setSpecularColor(Color(0.44f, 0.92f, 0.46f));
-    ImageTexture* roughness = new ImageTexture(config->sceneResourcesDir() + "earth2.bmp", 10000.0f);
+    ImageTexture* roughness = new ImageTexture(config->sceneResourcesDir() + "/Textures/earth_white_black.bmp", 10000.0f);
     sphereMat->setRoughness(roughness, roughness);
     Sphere* sphere = new Sphere;
     sphere->setRadius(0.35f);

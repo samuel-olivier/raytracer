@@ -89,19 +89,20 @@ void BoxTreeNode::_construct(const QVector<Node *> &nodes, int currentDeepness)
     } else if (boxSize.y() > boxSize.x() && boxSize.y() > boxSize.z()) {
         _axis = 1;
     }
+    float split = _boundingBox.center()[_axis];
     QVector<Node*> t1;
     QVector<Node*> t2;
     t1.reserve(nodes.size());
     t2.reserve(nodes.size());
 
-//    for (Node* node : nodes) {
-//        float g = node->center(_axis);
-//        if (g > split) {
-//            t2.append(node);
-//        } else {
-//            t1.append(node);
-//        }
-//    }
+    for (Node* node : nodes) {
+        float g = node->center(_axis);
+        if (g > split) {
+            t2.append(node);
+        } else {
+            t1.append(node);
+        }
+    }
     if (t1.isEmpty() || t2.isEmpty()) {
         t1 = nodes;
         NodeComp comp(_axis);
