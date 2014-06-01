@@ -1,9 +1,11 @@
 #include "AreaLight.h"
 
 #include <QDebug>
+#include <QtMath>
 
 #include "Config.h"
 #include "Triangle.h"
+#include "Vertex.h"
 
 AreaLight::AreaLight()
 {
@@ -20,8 +22,11 @@ void AreaLight::setTriangles(const QVector<Triangle *> &triangles)
 
     _totalArea = 0;
     for (int i = 0; i < triangles.size(); ++i) {
-        _areaCoef[i] = triangles[i]->area();
+        Triangle* triangle = triangles[i];
+        _areaCoef[i] = triangle->area();
         _totalArea += _areaCoef[i];
+        triangle->v0->u = (triangle->v1->position - triangle->v0->position).normalized();
+        triangle->v0->v = QVector3D::crossProduct(triangle->v0->u, triangle->normal());
     }
     for (int i = 0; i < triangles.size(); ++i) {
         _areaCoef[i] /= _totalArea;
@@ -60,6 +65,26 @@ float AreaLight::illuminate(const QVector3D &pos, Color &col, QVector3D &toLight
     return bright * qMax(cosA, 0.0f);
 }
 
+void AreaLight::sampleRay(Ray &newRay, float &intensity, Color &color) const
+{
+    Triangle* tri = _sampleTriangle();
+    if (tri == 0) {
+        intensity = 0.0f;
+        color = Color::BLACK;
+    } else {
+        float s = float(qrand()) / RAND_MAX;
+        float t = float(qrand()) / RAND_MAX;
+        float u = 2.0f * M_PI * s;
+        float v = qSqrt(1.0f - t);
+
+        intensity = this->intensity() / _totalArea;
+        color = baseColor();
+        newRay.direction = tri->normal() * qSqrt(t) + tri->v0->u * v * qCos(u) + tri->v0->v * v * qSin(u);
+        newRay.direction.normalize();
+        newRay.origin = tri->sample();
+    }
+}
+
 void AreaLight::intersectionColor(Color &col)
 {
     col = baseColor();
@@ -71,7 +96,15 @@ int AreaLight::sampleNumber() const
     return config->lightSampleNumber();
 }
 
-Triangle *AreaLight::_sampleTriangle()
+void AreaLight::transform(const QMatrix4x4 &mtx)
+{
+    for (Triangle* tri : _triangles) {
+        tri->transform(mtx);
+    }
+    setTriangles(_triangles);
+}
+
+Triangle *AreaLight::_sampleTriangle() const
 {
     float s = float(qrand()) / RAND_MAX;
     float sum = 0;

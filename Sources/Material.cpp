@@ -4,8 +4,9 @@
 #include <QtMath>
 
 #include "Config.h"
+#include "Texture.h"
 
-Material::Material()
+Material::Material() : _normalMap(0), _type(Type::Diffuse)
 {
     setName("Material");
 }
@@ -19,11 +20,23 @@ void Material::computeReflectance(Color &col, const QVector3D &, const Ray&, con
     col = Color::BLACK;
 }
 
-void Material::sampleRay(const Ray &, const Intersection &hit, Ray &newRay, Color &intensity) const
+bool Material::sampleRay(const Ray &, const Intersection &hit, Ray &newRay, Color &intensity) const
 {
     newRay.origin = hit.position;
     newRay.direction = hit.normal;
     intensity = Color::BLACK;
+    return false;
+}
+
+void Material::applyTransformation(Intersection &hit)
+{
+    if (_normalMap) {
+        Color col;
+        _normalMap->evaluateColor(hit.texCoord, col);
+        QVector3D n(col.Red - 0.5f, col.Blue - 0.5f, col.Green - 0.5f);
+        hit.normal = hit.normal * n.y() + hit.u * n.z() + hit.v * n.x();
+        hit.normal.normalize();
+    }
 }
 
 void Material::fresnelDielectric(const QVector3D &d, const QVector3D &normal, float ni, float nt, QVector<QPair<float, QVector3D> > &rays)
@@ -101,13 +114,13 @@ void Material::ashikhmin(const QVector3D &k1, const QVector3D &k2, const QVector
     QVector3D n = nTmp;
 
     float kh = QVector3D::dotProduct(k2, h);
-    float nh = QVector3D::dotProduct(n, h);
-    if (nh < 0) {
-        nh *= -1;
+    float nk1 = QVector3D::dotProduct(k1, n);
+    if (nk1 < 0) {
+        nk1 *= -1;
         n *= -1;
     }
-    float nk1 = QVector3D::dotProduct(k1, n);
     float nk2 = QVector3D::dotProduct(k2, n);
+    float nh = QVector3D::dotProduct(n, h);
     float hu = QVector3D::dotProduct(h, u);
     float hv = QVector3D::dotProduct(h, v);
 
@@ -128,8 +141,32 @@ QString const& Material::name() const
     return _name;
 }
 
-
 void Material::setName(const QString &name)
 {
     _name = name;
+}
+
+Texture *Material::normalMap()
+{
+    return _normalMap;
+}
+
+void Material::setNormalMap(Texture *normalMap)
+{
+    _normalMap = normalMap;
+}
+
+Material::Type Material::type() const
+{
+    return _type;
+}
+
+bool Material::isType(Material::Type test) const
+{
+    return _type & test;
+}
+
+void Material::setType(Material::Type type)
+{
+    _type = type;
 }

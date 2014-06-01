@@ -97,3 +97,9 @@ void Camera::setFocalPlane(float focalPlane)
 {
     _focalPlane = focalPlane;
 }
+
+void Camera::setMatrix(const QMatrix4x4 &matrix)
+{
+    _matrix = matrix;
+    set(qRadiansToDegrees(_verticalFOV), _aspectRatio);
+}

@@ -20,8 +20,10 @@ public:
 
     void    smooth();
     void    generateTangents();
+    void    generateTextureTangents();
 
     virtual void    setMaterial(Material* material);
+    virtual void    setAlphaMap(Texture* alphaMap);
 
 protected:
     QVector<Vertex*>    _vertices;

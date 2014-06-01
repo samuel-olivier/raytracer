@@ -3,6 +3,7 @@
 
 #include <QVector3D>
 #include <QVector2D>
+#include <QMatrix4x4>
 
 class Vertex
 {
@@ -11,6 +12,7 @@ public:
 
     void set(const QVector3D &position, const QVector3D &normal, const QVector2D &texCoord);
     void generateTangents();
+    void transform(const QMatrix4x4 &mtx);
 
     QVector3D position;
     QVector3D normal;

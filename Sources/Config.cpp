@@ -131,6 +131,46 @@ void Config::setPathSampleNumber(int pathSampleNumber)
     _pathSampleNumber = pathSampleNumber;
 }
 
+bool Config::usePhotonMapping() const
+{
+    return _usePhotonMapping;
+}
+
+void Config::setUsePhotonMapping(bool usePhotonMapping)
+{
+    _usePhotonMapping = usePhotonMapping;
+}
+
+int Config::photonNumber() const
+{
+    return _photonNumber;
+}
+
+void Config::setPhotonNumber(int photonNumber)
+{
+    _photonNumber = photonNumber;
+}
+
+int Config::numberNearestPhoton() const
+{
+    return _numberNearestPhoton;
+}
+
+void Config::setNumberNearestPhoton(int numberNearestPhoton)
+{
+    _numberNearestPhoton = numberNearestPhoton;
+}
+
+float Config::photonMaximumRadius() const
+{
+    return _photonMaximumRadius;
+}
+
+void Config::setPhotonMaximumRadius(float photonMaximumRadius)
+{
+    _photonMaximumRadius = photonMaximumRadius;
+}
+
 float Config::refractionIndex() const
 {
     return _refractionIndex;
@@ -187,8 +227,15 @@ Config::Config()
     _antialiasingType = AntialiasingType::Shirley;
     _maximumNodesPerBox = 10;
     _pathDepth = 5;
+
+    _usePhotonMapping = true;
+    _photonNumber = 200000;
+    _numberNearestPhoton = 700;
+    _photonMaximumRadius = 0.005f;
+
     _refractionIndex = 1.0003f;
     _pathSampleNumber = 1;
+
     _defaultCameraVerticalFOV = 40.0f;
     _defaultCameraAspectRatio = 1.33f;
     _defaultCameraAperture = 0.0f;

@@ -87,6 +87,11 @@ void Instance::updateInfo()
     }
 }
 
+const QMatrix4x4 &Instance::matrix() const
+{
+    return _m1;
+}
+
 void Instance::_matrixAt(float t, QMatrix4x4 &m, QMatrix4x4 &invM) const
 {
     if (_isAnimated) {

@@ -1,6 +1,7 @@
 #include "Light.h"
 
 #include <QtGlobal>
+#include <QtMath>
 
 Light::Light()
     : _baseColor(Color::WHITE), _intensity(1.0f)
@@ -28,7 +29,7 @@ float Light::intensity() const
 
 void Light::setIntensity(float intensity)
 {
-    _intensity = qMax(intensity, 0.0f);
+    _intensity = qMax(intensity * float(M_PI), 0.0f);
 }
 
 void Light::intersectionColor(Color &col)

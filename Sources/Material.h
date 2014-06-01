@@ -10,14 +10,23 @@
 #include "Color.h"
 #include "Ray.h"
 
+class Texture;
+
 class Material
 {
 public:
+    enum Type {
+        Diffuse = 0x1,
+        Reflection = 0x2,
+        Transmission = 0x4
+    };
+
     Material();
     virtual ~Material();
 
     virtual void computeReflectance(Color& col, const QVector3D& in, const Ray& ray, const Intersection& hit) const;
-    virtual void sampleRay(const Ray &ray, Intersection const& hit, Ray& newRay, Color& intensity) const;
+    virtual bool sampleRay(const Ray &ray, Intersection const& hit, Ray& newRay, Color& intensity) const;
+    virtual void applyTransformation(Intersection& hit);
 
     static void fresnelDielectric(const QVector3D &d, const QVector3D &n, float ni, float nt, QVector<QPair<float, QVector3D> > &rays);
     static void fresnelMetal(const QVector3D &d, const QVector3D &n, float nt, float kt, float &intensity, QVector3D &rayDirection);
@@ -27,8 +36,19 @@ public:
     QString const&  name() const;
     void            setName(QString const& newName);
 
+    Texture*    normalMap();
+    void        setNormalMap(Texture* normalMap);
+
+    Type        type() const;
+    bool        isType(Type test) const;
+
+protected:
+    void        setType(Type type);
+
 private:
     QString     _name;
+    Texture*    _normalMap;
+    Type        _type;
 };
 
 #endif // MATERIAL_H

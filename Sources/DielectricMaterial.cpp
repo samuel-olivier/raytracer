@@ -8,6 +8,8 @@
 DielectricMaterial::DielectricMaterial()
     : _n(1.0003f), _absorptionCoef(0.0f), _absorptionColor(Color::WHITE), _roughness(0.2f)
 {
+    setType(Type(Type::Reflection | Type::Transmission));
+    setName("Dielectric Material");
 }
 
 DielectricMaterial::~DielectricMaterial()
@@ -32,7 +34,7 @@ void DielectricMaterial::computeReflectance(Color &col, const QVector3D &in, con
     }
 }
 
-void DielectricMaterial::sampleRay(const Ray &ray, const Intersection &hit, Ray &newRay, Color &intensity) const
+bool DielectricMaterial::sampleRay(const Ray &ray, const Intersection &hit, Ray &newRay, Color &intensity) const
 {
     float ni = config->refractionIndex();
     float nt = _n;
@@ -66,7 +68,9 @@ void DielectricMaterial::sampleRay(const Ray &ray, const Intersection &hit, Ray 
         }
     } else {
         intensity = Color::BLACK;
+        return false;
     }
+    return true;
 }
 
 float DielectricMaterial::n() const

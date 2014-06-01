@@ -10,6 +10,7 @@
 #include "BoundingBox.h"
 
 class Mesh;
+class Texture;
 
 class Node
 {
@@ -49,6 +50,9 @@ public:
 
     virtual void        updateInfo();
 
+    Texture*        alphaMap() const;
+    virtual void    setAlphaMap(Texture* alphaMap);
+
 
 protected:
     QSet<Node*>     _children;
@@ -59,6 +63,7 @@ protected:
     Material*       _material;
     BoundingBox     _boundingBox;
     QVector3D       _center;
+    Texture*        _alphaMap;
 };
 
 #endif // NODE_H

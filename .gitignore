@@ -1,3 +1,5 @@
 *.db
 Output/*
 *.user
+Resources/Scene/Models/Music/Music.c4d
+Resources/Scene/Models/Music/Music.dae

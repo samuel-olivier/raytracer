@@ -3,6 +3,8 @@
 
 #include "Node.h"
 
+#include <QMatrix4x4>
+
 #include "Ray.h"
 #include "Intersection.h"
 
@@ -23,6 +25,7 @@ public:
 
     QVector3D const& normal() const;
 
+    void            transform(QMatrix4x4 const& mtx);
     virtual void    updateInfo();
 
     Vertex*     v0;

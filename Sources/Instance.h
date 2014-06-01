@@ -18,6 +18,13 @@ public:
 
     virtual void    updateInfo();
 
+    template <class T>
+    T*           object() const {
+        return dynamic_cast<T*>(_object);
+    }
+
+    QMatrix4x4 const&   matrix() const;
+
 private:
     void        _matrixAt(float t, QMatrix4x4 &m, QMatrix4x4 &invM) const;
     Node*       _object;

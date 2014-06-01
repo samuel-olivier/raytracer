@@ -4,6 +4,8 @@
 #include <QFileInfo>
 #include <QDir>
 #include <QDebug>
+#include <QtMath>
+#include <QUrl>
 
 #include <assimp/postprocess.h>
 
@@ -13,13 +15,25 @@
 #include "LambertMaterial.h"
 #include "Logger.h"
 #include "ImageTexture.h"
+#include "Instance.h"
+#include "Camera.h"
+#include "AshikhminMaterial.h"
+#include "PointLight.h"
+#include "DirectionalLight.h"
+#include "SpotLight.h"
 
 AssimpLoader::AssimpLoader()
     : _importer(0)
 {
 }
 
-void AssimpLoader::loadFile(const QString &filename, QList<Mesh *> &meshes)
+void AssimpLoader::loadFile(const QString &filename, QList<Instance *> &meshes, Camera *camera)
+{
+    QList<Light *> lights;
+    loadFile(filename, meshes, lights, camera);
+}
+
+void AssimpLoader::loadFile(const QString &filename, QList<Instance *> &meshes, QList<Light *> &lights, Camera *camera)
 {
     _importer = new Assimp::Importer;
     logger->showMessage("Opening File");
@@ -27,8 +41,6 @@ void AssimpLoader::loadFile(const QString &filename, QList<Mesh *> &meshes)
                                                aiProcess_Triangulate
                                                | aiProcess_GenSmoothNormals
                                                | aiProcess_FixInfacingNormals);
-//    const aiScene* scene = _importer->ReadFile(filename.toStdString(),
-//                                               aiProcess_Triangulate);
 
     QFileInfo fileInfo(filename);
     _baseDir = fileInfo.dir().path();
@@ -40,15 +52,12 @@ void AssimpLoader::loadFile(const QString &filename, QList<Mesh *> &meshes)
     _loadMaterials(scene);
     int numTriangles = 0;
     logger->showMessage(QString("%1 : Loading Meshes...").arg(filename));
-    _loadAssimpNode(scene, scene->mRootNode, numTriangles, meshes);
-    logger->writeSuccess(QString("File loaded : %1 meshes | %2 triangles").arg(QString::number(meshes.size())).arg(QString::number(numTriangles)));
+    _loadAssimpNode(scene, scene->mRootNode, numTriangles, meshes, lights, camera);
+    logger->writeSuccess(QString("File loaded : %1 meshes | %2 triangles | %3 lights").arg(QString::number(meshes.size())).arg(QString::number(numTriangles)).arg(QString::number(lights.size())));
     logger->showMessage(QString("%1 : Loaded").arg(filename));
-//    for (Mesh* mesh : meshes) {
-//        mesh->smooth();
-//    }
 }
 
-void AssimpLoader::loadFile1(const QString &filename, QList<Mesh *> &meshes)
+void AssimpLoader::loadFile1(const QString &filename, QList<Instance *> &meshes)
 {
     // Open file
     logger->showMessage("Opening File");
@@ -134,7 +143,7 @@ void AssimpLoader::loadFile1(const QString &filename, QList<Mesh *> &meshes)
     res->setTriangles(mesh);
     res->smooth();
     res->generateTangents();
-    meshes.append(res);
+    meshes.append(new Instance(res));
     // Close file
     fclose(f);
     logger->writeSuccess(QString("File loaded : 1 mesh | %1 triangles").arg(QString::number(numtris)));
@@ -149,35 +158,27 @@ void AssimpLoader::_loadMaterials(const aiScene *scene)
     _materials.resize(scene->mNumMaterials);
     for (unsigned int i = 0; i < scene->mNumMaterials; ++i) {
         aiMaterial* mtl = scene->mMaterials[i];
-        LambertMaterial* mat = new LambertMaterial;
+        AshikhminMaterial* mat = new AshikhminMaterial;
         aiString path;
         aiColor4D diffuse;
-        //        aiColor4D specular;
-        //        aiColor4D ambient;
-        //        aiColor4D emission;
-//        float shininess, strength, opacity;
-//        int max;
+        aiColor4D specular;
+        float reflection = -1.0f;
 
+        if (aiGetMaterialString(mtl, AI_MATKEY_NAME, &path) == AI_SUCCESS) {
+            mat->setName(path.C_Str());
+        }
         if (aiGetMaterialColor(mtl, AI_MATKEY_COLOR_DIFFUSE, &diffuse) == AI_SUCCESS) {
             mat->setDiffuseColor(Color(diffuse.r, diffuse.g, diffuse.b));
         }
-        //        if(aiGetMaterialColor(mtl, AI_MATKEY_COLOR_SPECULAR, &specular) == AI_SUCCESS) {
-        //            mat->setSpecularColor(Color(specular.r, specular.g, specular.b));
-        //        }
-        //        if(aiGetMaterialColor(mtl, AI_MATKEY_COLOR_AMBIENT, &ambient) == AI_SUCCESS) {
-        //            mat->setAmbientColor(Color(ambient.r, ambient.g, ambient.b));
-        //        }
-        //        if(aiGetMaterialColor(mtl, AI_MATKEY_COLOR_EMISSIVE, &emission) == AI_SUCCESS) {
-        //            mat->setEmissiveColor(Color(emission.r, emission.g, emission.b));
-        //        }
-        //        max = 1;
-        //        if (aiGetMaterialFloatArray(mtl, AI_MATKEY_SHININESS, &shininess, &max) == AI_SUCCESS) {
-        //            mat->setShininess(shininess);
-        //        }
-        //        max = 1;
-        //        if (aiGetMaterialFloatArray(mtl, AI_MATKEY_SHININESS_STRENGTH, &strength, &max) == AI_SUCCESS) {
-        //            mat->setShininessStrength(strength);
-        //        }
+        if(aiGetMaterialColor(mtl, AI_MATKEY_COLOR_SPECULAR, &specular) == AI_SUCCESS) {
+            mat->setSpecularColor(Color(specular.r, specular.g, specular.b));
+        }
+        if (aiGetMaterialFloat(mtl, AI_MATKEY_REFLECTIVITY, &reflection) == AI_SUCCESS) {
+            reflection = qMin(1.0f, reflection);
+            reflection = qMax(0.0f, reflection);
+            mat->setSpecularLevel(reflection);
+            mat->setDiffuseLevel(1.0f - reflection);
+        }
         if (mtl->GetTexture(aiTextureType_DIFFUSE, 0, &path) == AI_SUCCESS) {
             ImageTexture* t = new ImageTexture(_baseDir + "/" + path.C_Str());
             if (t->hasImage()) {
@@ -186,23 +187,78 @@ void AssimpLoader::_loadMaterials(const aiScene *scene)
                 delete t;
             }
         }
+        if (mtl->GetTexture(aiTextureType_SPECULAR, 0, &path) == AI_SUCCESS) {
+            ImageTexture* t = new ImageTexture(_baseDir + "/" + path.C_Str());
+            if (t->hasImage()) {
+                mat->setSpecularColor(t);
+            } else {
+                delete t;
+            }
+        }
         _materials[i] = mat;
+        Color v1, v2;
+        mat->diffuseColor()->evaluateColor(0, 0, v1);
+        mat->specularColor()->evaluateColor(0, 0, v2);
     }
 }
 
-void AssimpLoader::_loadAssimpNode(const aiScene *scene, aiNode *assimpNode, int &numTriangles, QList<Mesh *> &meshes)
+void AssimpLoader::_loadAssimpNode(const aiScene *scene, aiNode *assimpNode, int &numTriangles, QList<Instance *> &meshes, QList<Light *> &lights, Camera *camera, const QMatrix4x4 &parent)
 {
+    QMatrix4x4 mtx;
+    aiMatrix4x4 aiMtx = assimpNode->mTransformation;
+
+    mtx.setColumn(0, QVector4D(aiMtx.a1, aiMtx.b1, aiMtx.c1, aiMtx.d1));
+    mtx.setColumn(1, QVector4D(aiMtx.a2, aiMtx.b2, aiMtx.c2, aiMtx.d2));
+    mtx.setColumn(2, QVector4D(aiMtx.a3, aiMtx.b3, aiMtx.c3, aiMtx.d3));
+    mtx.setColumn(3, QVector4D(aiMtx.a4, aiMtx.b4, aiMtx.c4, aiMtx.d4));
+
+    mtx = parent * mtx;
+
+    if (camera && QString(assimpNode->mName.C_Str()).toLower() == "camera") {
+        camera->setMatrix(mtx);
+//        aiCamera* assimpCamera = scene->mCameras[0];
+//        camera->set(qRadiansToDegrees(assimpCamera->mHorizontalFOV) / assimpCamera->mAspect, assimpCamera->mAspect);
+    }
+    for (int i = 0; i < scene->mNumLights; ++i) {
+        aiLight* lgt = scene->mLights[i];
+        if (lgt->mName == assimpNode->mName) {
+            Light* res = 0;
+
+            if (lgt->mType == aiLightSource_POINT) {
+                PointLight* tmp = new PointLight;
+                tmp->setPosition(mtx.map(QVector4D(lgt->mPosition.x, lgt->mPosition.y, lgt->mPosition.z, 1.0f)).toVector3D());
+                res = tmp;
+            } else if (lgt->mType == aiLightSource_DIRECTIONAL) {
+                DirectionalLight* tmp = new DirectionalLight;
+                tmp->setDirection(mtx.map(QVector4D(lgt->mDirection.x, lgt->mDirection.y, lgt->mDirection.z, 0.0f)).toVector3D().normalized());
+                res = tmp;
+            } else if (lgt->mType == aiLightSource_SPOT) {
+                SpotLight* tmp = new SpotLight;
+                tmp->setPosition(mtx.map(QVector4D(lgt->mPosition.x, lgt->mPosition.y, lgt->mPosition.z, 1.0f)).toVector3D());
+                tmp->setDirection(mtx.map(QVector4D(lgt->mDirection.x, lgt->mDirection.y, lgt->mDirection.z, 0.0f)).toVector3D().normalized());
+                tmp->setOuterAngle(qRadiansToDegrees(lgt->mAngleInnerCone));
+                tmp->setInnerAngle(0.8f * tmp->outerAngle());
+                res = tmp;
+            } else {
+                continue ;
+            }
+            res->setName(lgt->mName.C_Str());
+            res->setBaseColor(Color(lgt->mColorDiffuse.r, lgt->mColorDiffuse.g, lgt->mColorDiffuse.b));
+            lights << res;
+        }
+    }
+
     for (uint i = 0; i < assimpNode->mNumMeshes; ++i) {
         aiMesh* assimpMesh = scene->mMeshes[assimpNode->mMeshes[i]];
-
         if (!(assimpMesh->mPrimitiveTypes & aiPrimitiveType_TRIANGLE) ||
                 assimpMesh->mNumVertices <= 0)
             continue ;
 
         CustomMesh* mesh = new CustomMesh;
-        meshes << mesh;
-        mesh->setName(assimpMesh->mName.data);
-
+        Instance* inst = new Instance(mesh);
+        inst->setMatrix(mtx);
+        meshes << inst;
+        mesh->setName(assimpNode->mName.data);
         QVector<Vertex*> vertices(assimpMesh->mNumVertices, 0);
         for (uint j = 0; j < assimpMesh->mNumVertices; ++j) {
             Vertex* v = new Vertex;
@@ -227,15 +283,15 @@ void AssimpLoader::_loadAssimpNode(const aiScene *scene, aiNode *assimpNode, int
                 Triangle* triangle = new Triangle(vertices[assimpMesh->mFaces[j].mIndices[0]],
                         vertices[assimpMesh->mFaces[j].mIndices[1]],
                         vertices[assimpMesh->mFaces[j].mIndices[2]]);
-                if (assimpMesh->mMaterialIndex >= 0 && assimpMesh->mMaterialIndex < (unsigned int)_materials.size()) {
-                    triangle->setMaterial(_materials[assimpMesh->mMaterialIndex]);
-                }
                 triangles[j] = triangle;
             }
         }
         mesh->setTriangles(triangles);
+        if (assimpMesh->mMaterialIndex >= 0 && assimpMesh->mMaterialIndex < (unsigned int)_materials.size()) {
+            mesh->setMaterial(_materials[assimpMesh->mMaterialIndex]);
+        }
     }
     for (uint i = 0; i < assimpNode->mNumChildren; ++i) {
-        _loadAssimpNode(scene, assimpNode->mChildren[i], numTriangles, meshes);
+        _loadAssimpNode(scene, assimpNode->mChildren[i], numTriangles, meshes, lights, camera, mtx);
     }
 }

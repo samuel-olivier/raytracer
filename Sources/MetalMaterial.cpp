@@ -8,6 +8,8 @@
 MetalMaterial::MetalMaterial()
     : _n(1.0f), _k(1.0f), _transmittedColor(Color::BLACK), _roughness(0.1f)
 {
+    setType(Type::Reflection);
+    setName("Metal Material");
 }
 
 MetalMaterial::~MetalMaterial()
@@ -27,16 +29,19 @@ void MetalMaterial::computeReflectance(Color &col, const QVector3D &in, const Ra
     }
 }
 
-void MetalMaterial::sampleRay(const Ray &ray, const Intersection &hit, Ray &newRay, Color &intensity) const
+bool MetalMaterial::sampleRay(const Ray &ray, const Intersection &hit, Ray &newRay, Color &intensity) const
 {
     float intensityValue = 0;
     QVector3D newDirection;
     Material::fresnelMetal(ray.direction, hit.normal, _n, _k, intensityValue, newDirection);
-    intensity = _transmittedColor;
-    intensity.Scale(intensityValue);
-
-    newRay.origin = hit.position;
-    newRay.direction = newDirection;
+    if (float(qrand()) / RAND_MAX <= intensityValue) {
+        intensity = _transmittedColor;
+        intensity.Scale(intensityValue);
+        newRay.origin = hit.position;
+        newRay.direction = newDirection;
+        return true;
+    }
+    return false;
 }
 
 float MetalMaterial::n() const

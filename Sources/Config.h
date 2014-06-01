@@ -54,6 +54,18 @@ public:
     int     pathSampleNumber() const;
     void    setPathSampleNumber(int pathSampleNumber);
 
+    bool    usePhotonMapping() const;
+    void    setUsePhotonMapping(bool usePhotonMapping);
+
+    int     photonNumber() const;
+    void    setPhotonNumber(int photonNumber);
+
+    int     numberNearestPhoton() const;
+    void    setNumberNearestPhoton(int numberNearestPhoton);
+
+    float   photonMaximumRadius() const;
+    void    setPhotonMaximumRadius(float photonMaximumRadius);
+
     float   refractionIndex() const;
     void    setRefractionIndex(float refractionIndex);
 
@@ -87,6 +99,10 @@ private:
     float       _refractionIndex;
     int         _pathDepth;
     int         _pathSampleNumber;
+    bool        _usePhotonMapping;
+    int         _photonNumber;
+    int         _numberNearestPhoton;
+    float       _photonMaximumRadius;
 
     float       _defaultCameraVerticalFOV;
     float       _defaultCameraAspectRatio;

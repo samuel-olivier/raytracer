@@ -20,6 +20,7 @@ public:
     void    setIntensity(float intensity);
 
     virtual float illuminate(const QVector3D& pos, Color& col, QVector3D& toLight, QVector3D& ltPos) = 0;
+    virtual void  sampleRay(Ray& newRay, float& intensity, Color& color) const = 0;
 
     virtual void  intersectionColor(Color& col);
 

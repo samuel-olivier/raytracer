@@ -18,9 +18,12 @@
 #include "Config.h"
 #include "Material.h"
 #include "Sky.h"
+#include "KDTreeNode.h"
+#include "Photon.h"
+#include "PhotonMap.h"
 
 Renderer::Renderer(QWidget *parent)
-    : QWidget(parent), _camera(0), _scene(0), _raytracerThread(0)
+    : QWidget(parent), _camera(0), _scene(0), _raytracerThread(0), _globalPhotonMap(0)
 {
     setImageSize(config->defaultImageWidth(), config->defaultImageHeight());
     QTimer* updator = new QTimer(this);
@@ -220,6 +223,12 @@ void Renderer::_raytrace()
     _renderingTime.restart();
     _imageColors.resize(imageSize.width() * imageSize.height());
     _imageColors.fill(Color::BLACK);
+    if (config->usePhotonMapping()) {
+        _globalPhotonMap = new PhotonMap(_scene);
+        _globalPhotonMap->build(PhotonMap::Global);
+//        _causticPhotonMap = new PhotonMap(_scene);
+//        _causticPhotonMap->build(PhotonMap::Caustic);
+    }
 
     emit renderingStarted();
 
@@ -312,20 +321,27 @@ void Renderer::_raytraceSections()
 void Renderer::_throwRay(const Ray &ray, Intersection &hit)
 {
     hit.shade = Color::BLACK;
-    bool intersected = _scene->intersect(ray, hit);
-    if (intersected) {
+    if (_scene->intersect(ray, hit)) {
         if (hit.light != 0) {
             hit.light->intersectionColor(hit.shade);
             return ;
         }
-        if (hit.material && ray.depth < config->pathDepth()) {
+        if (QVector3D::dotProduct(hit.normal, ray.direction) > 0) {
+            hit.normal *= -1;
+            hit.u *= -1;
+            hit.v *= -1;
+        }
+        if (hit.material) {
+            hit.material->applyTransformation(hit);
+        }
+        if (config->usePhotonMapping() == false && hit.material && ray.depth < config->pathDepth()) {
             int sampleNumber = config->pathSampleNumber();
             for (int s = 0; s < sampleNumber; ++s) {
                 Ray newRay;
                 Color c;
 
-                hit.material->sampleRay(ray, hit, newRay, c);
-                if (!c.isBlack()) {
+                newRay.type = Ray::Reflected;
+                if (hit.material->sampleRay(ray, hit, newRay, c)) {
                     newRay.depth = ray.depth + 1;
                     Intersection newHit;
                     newRay.time = ray.time;
@@ -336,24 +352,32 @@ void Renderer::_throwRay(const Ray &ray, Intersection &hit)
                 }
             }
         }
-        for (Light* light : _scene->lights()) {
-            int sampleNumber = light->sampleNumber();
-            for (int i = 0; i < sampleNumber; ++i) {
-                Color color;
-                QVector3D toLight;
-                QVector3D lightPos;
-                float bright = light->illuminate(hit.position, color, toLight, lightPos) / sampleNumber;
-                float cosTheta = QVector3D::dotProduct(toLight, hit.normal);
-                if (cosTheta >= Config::Epsilon && bright >= Config::Epsilon) {
-                    if (!config->shadowEnabled() || !_isShaded(hit.position, toLight, lightPos, ray.time)) {
-                        Color materialColor = Color::WHITE;
-                        if (hit.material) {
-                            hit.material->computeReflectance(materialColor, toLight, ray, hit);
-                        }
-                        color.Multiply(materialColor);
-                        hit.shade.AddScaled(color, bright);
-                    }
-                }
+//        for (Light* light : _scene->lights()) {
+//            int sampleNumber = light->sampleNumber();
+//            for (int i = 0; i < sampleNumber; ++i) {
+//                Color color;
+//                QVector3D toLight;
+//                QVector3D lightPos;
+//                float bright = light->illuminate(hit.position, color, toLight, lightPos) / sampleNumber;
+//                float cosTheta = QVector3D::dotProduct(toLight, hit.normal);
+//                if (cosTheta >= Config::Epsilon && bright >= Config::Epsilon) {
+//                    if (!config->shadowEnabled() || !_isShaded(hit.position, toLight, lightPos, ray.time)) {
+//                        Color materialColor = Color::WHITE;
+//                        if (hit.material) {
+//                            hit.material->computeReflectance(materialColor, toLight, ray, hit);
+//                        }
+//                        color.Multiply(materialColor);
+//                        hit.shade.AddScaled(color, bright);
+//                    }
+//                }
+//            }
+//        }
+        if (config->usePhotonMapping()) {
+            if (_globalPhotonMap) {
+                _globalPhotonMap->computeColor(hit.position, hit.shade, config->numberNearestPhoton(), config->photonMaximumRadius());
+            }
+            if (_causticPhotonMap) {
+                _causticPhotonMap->computeColor(hit.position, hit.shade, config->numberNearestPhoton(), config->photonMaximumRadius());
             }
         }
     } else {

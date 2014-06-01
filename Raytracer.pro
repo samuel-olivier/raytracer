@@ -52,7 +52,11 @@ SOURCES += Sources/main.cpp\
     Sources/ImageTexture.cpp \
     Sources/Sky.cpp \
     Sources/UniformSky.cpp \
-    Sources/SphereSky.cpp
+    Sources/SphereSky.cpp \
+    Sources/SpotLight.cpp \
+    Sources/Photon.cpp \
+    Sources/KDTreeNode.cpp \
+    Sources/PhotonMap.cpp
 
 HEADERS  += Sources/MainWindow.h \
     Sources/Renderer.h \
@@ -94,7 +98,11 @@ HEADERS  += Sources/MainWindow.h \
     Sources/ImageTexture.h \
     Sources/Sky.h \
     Sources/UniformSky.h \
-    Sources/SphereSky.h
+    Sources/SphereSky.h \
+    Sources/SpotLight.h \
+    Sources/Photon.h \
+    Sources/KDTreeNode.h \
+    Sources/PhotonMap.h
 
 FORMS    += Forms/MainWindow.ui
 

@@ -7,6 +7,7 @@
 #include "Vertex.h"
 #include "Material.h"
 #include "Config.h"
+#include "Texture.h"
 
 Triangle::Triangle(Vertex *v0, Vertex *v1, Vertex *v2, Material *material) : Node(0)
 {
@@ -46,12 +47,20 @@ bool Triangle::intersect(const Ray &ray, Intersection &hit)
     }
     float t = QVector3D::dotProduct(ray.origin - v0->position, QVector3D::crossProduct(v1->position - v0->position, v2->position - v0->position)) / detM;
     if (t > Config::Epsilon && t < hit.hitDistance - Config::Epsilon) {
+        QVector2D texCoord = (1 - alpha - beta) * v0->texCoord + alpha * v1->texCoord + beta * v2->texCoord;
+        if (_alphaMap) {
+            float mean;
+            _alphaMap->evaluateFloat(texCoord, mean);
+            if (mean < 0.5f) {
+                return false;
+            }
+        }
         if (ray.type == Ray::Shadow) {
             return true;
         }
         hit.hitDistance = t;
         hit.normal = (1 - alpha - beta) * v0->normal + alpha * v1->normal + beta * v2->normal;
-        hit.texCoord = (1 - alpha - beta) * v0->texCoord + alpha * v1->texCoord + beta * v2->texCoord;
+        hit.texCoord = texCoord;
         hit.material = _material;
         hit.position = ray.origin + ray.direction * t;
         hit.u = (1 - alpha - beta) * v0->u + alpha * v1->u + beta * v2->u;
@@ -82,6 +91,14 @@ QVector3D Triangle::sample() const
 QVector3D const& Triangle::normal() const
 {
     return _normal;
+}
+
+void Triangle::transform(const QMatrix4x4 &mtx)
+{
+    v0->transform(mtx);
+    v1->transform(mtx);
+    v2->transform(mtx);
+    updateInfo();
 }
 
 void Triangle::updateInfo()

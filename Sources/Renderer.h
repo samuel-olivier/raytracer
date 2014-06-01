@@ -14,6 +14,9 @@
 
 class Camera;
 class Scene;
+class KDTreeNode;
+class Photon;
+class PhotonMap;
 
 class Renderer : public QWidget
 {
@@ -55,7 +58,9 @@ protected:
 
 private slots:
     void    _onStop();
+
 private:
+
     void    _raytrace();
     void    _raytraceSections();
     void    _throwRay(Ray const& ray, Intersection &hit);
@@ -83,6 +88,9 @@ private:
 
     std::atomic<int>    _sampleNumber;
     QVector<Color>      _imageColors;
+
+    PhotonMap*          _globalPhotonMap;
+    PhotonMap*          _causticPhotonMap;
 };
 
 #endif // RENDERER_H

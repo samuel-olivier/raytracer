@@ -33,7 +33,7 @@ void PlasticMaterial::computeReflectance(Color &col, const QVector3D &in, const 
     }
 }
 
-void PlasticMaterial::sampleRay(const Ray &ray, const Intersection &hit, Ray &newRay, Color &intensity) const
+bool PlasticMaterial::sampleRay(const Ray &ray, const Intersection &hit, Ray &newRay, Color &intensity) const
 {
     float ni = config->refractionIndex();
     float nt = _n;
@@ -46,7 +46,9 @@ void PlasticMaterial::sampleRay(const Ray &ray, const Intersection &hit, Ray &ne
         intensity.Scale(rays.first().first);
         newRay.origin = hit.position;
         newRay.direction = rays.first().second;
+        return true;
     }
+    return false;
 }
 
 const Color &PlasticMaterial::diffuseColor() const

@@ -12,7 +12,8 @@ public:
     QVector3D const&    position() const;
     void                setPosition(QVector3D const& position);
 
-    virtual float       illuminate(const QVector3D &pos, Color &col, QVector3D &toLight, QVector3D &ltPos);
+    virtual float illuminate(const QVector3D &pos, Color &col, QVector3D &toLight, QVector3D &ltPos);
+    virtual void  sampleRay(Ray& newRay, float& intensity, Color& color) const;
 
     virtual int         sampleNumber() const;
 

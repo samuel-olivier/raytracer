@@ -26,3 +26,9 @@ void Vertex::generateTangents()
     }
     v = QVector3D::crossProduct(normal, u);
 }
+
+void Vertex::transform(const QMatrix4x4 &mtx)
+{
+    position = mtx.map(position);
+    normal = mtx.map(QVector4D(normal, 0.0f)).toVector3D();
+}

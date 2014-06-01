@@ -27,6 +27,12 @@ float DirectionalLight::illuminate(const QVector3D &pos, Color &col, QVector3D &
     return intensity();
 }
 
+void DirectionalLight::sampleRay(Ray &newRay, float &intensity, Color &color) const
+{
+    intensity = this->intensity();
+    color = baseColor();
+}
+
 int DirectionalLight::sampleNumber() const
 {
     return 1;

@@ -10,7 +10,7 @@ public:
     virtual ~DielectricMaterial();
 
     virtual void    computeReflectance(Color &col, const QVector3D &in, const Ray &ray, const Intersection &hit) const;
-    virtual void    sampleRay(const Ray &ray, Intersection const& hit, Ray& newRay, Color& intensity) const;
+    virtual bool    sampleRay(const Ray &ray, Intersection const& hit, Ray& newRay, Color& intensity) const;
 
     float   n() const;
     void    setN(float n);

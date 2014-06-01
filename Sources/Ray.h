@@ -10,7 +10,8 @@ public:
     enum Type {
         Primary,
         Shadow,
-        Reflected
+        Reflected,
+        Photon
     };
 
     Ray();

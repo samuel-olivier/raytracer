@@ -26,6 +26,8 @@ public:
     float   focalPlane() const;
     void    setFocalPlane(float focalPlane);
 
+    void    setMatrix(QMatrix4x4 const& matrix);
+
 private:
     float       _verticalFOV;
     float       _horizontalFOV;

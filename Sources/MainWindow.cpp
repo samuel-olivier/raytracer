@@ -79,12 +79,15 @@ void MainWindow::onPlayPause()
         _ui->action_Play_Pause->setIcon(QIcon(":/Resources/play.png"));
         logger->showMessage("Rendering paused");
     }
+    _ui->action_Stop->setEnabled(true);
 }
 
 void MainWindow::onStop()
 {
     _ui->renderer->stopRendering();
-    _ui->action_Play_Pause->setText("Render");
+    _ui->action_Play_Pause->setToolTip("Render");
+    _ui->action_Play_Pause->setIcon(QIcon(":/Resources/play.png"));
+    _ui->action_Stop->setEnabled(false);
 }
 
 void MainWindow::onLoadScene()
@@ -121,7 +124,7 @@ void MainWindow::onUpdateProgress()
     int sampleNumber = _ui->renderer->sampleNumber();
 
     elapsed = elapsed.addMSecs(elaps);
-    _ui->elapsedTime->setText(elapsed.toString("mm:ss.zzz"));
+    _ui->elapsedTime->setText(elapsed.toString("hh:mm:ss.zzz"));
     _ui->sampleNumber->setText(QString::number(sampleNumber));
     if (sampleNumber > 0) {
         mean = mean.addMSecs(elaps / sampleNumber);

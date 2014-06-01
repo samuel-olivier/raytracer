@@ -28,6 +28,19 @@ float PointLight::illuminate(const QVector3D &pos, Color &col, QVector3D &toLigh
     return bright;
 }
 
+void PointLight::sampleRay(Ray &newRay, float &intensity, Color &color) const
+{
+    do {
+        newRay.direction.setX((float(qrand()) / (RAND_MAX * 0.5f)) - 1.0f);
+        newRay.direction.setY((float(qrand()) / (RAND_MAX * 0.5f)) - 1.0f);
+        newRay.direction.setZ((float(qrand()) / (RAND_MAX * 0.5f)) - 1.0f);
+    } while (newRay.direction.lengthSquared() > 1);
+    newRay.origin = _position;
+    newRay.direction.normalize();
+    intensity = this->intensity();
+    color = baseColor();
+}
+
 int PointLight::sampleNumber() const
 {
     return 1;

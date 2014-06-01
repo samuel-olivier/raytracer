@@ -6,7 +6,7 @@
 #include "BoxTreeNode.h"
 
 Node::Node(Node *parent)
-    : _parent(NULL), _visible(true), _material(0)
+    : _parent(NULL), _visible(true), _material(0), _alphaMap(0)
 {
     setParent(parent);
     setType("Node");
@@ -147,4 +147,14 @@ float Node::center(int dim) const
 
 void Node::updateInfo()
 {
+}
+
+Texture *Node::alphaMap() const
+{
+    return _alphaMap;
+}
+
+void Node::setAlphaMap(Texture *alphaMap)
+{
+    _alphaMap = alphaMap;
 }
