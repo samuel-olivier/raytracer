@@ -65,6 +65,7 @@ bool Triangle::intersect(const Ray &ray, Intersection &hit)
         hit.position = ray.origin + ray.direction * t;
         hit.u = (1 - alpha - beta) * v0->u + alpha * v1->u + beta * v2->u;
         hit.v = (1 - alpha - beta) * v0->v + alpha * v1->v + beta * v2->v;
+        hit.light = 0;
         return true;
     }
     return false;

@@ -6,7 +6,7 @@
 #include "Config.h"
 #include "Texture.h"
 
-Material::Material() : _normalMap(0), _type(Type::Diffuse)
+Material::Material() : _normalMap(0)
 {
     setName("Material");
 }
@@ -25,6 +25,7 @@ bool Material::sampleRay(const Ray &, const Intersection &hit, Ray &newRay, Colo
     newRay.origin = hit.position;
     newRay.direction = hit.normal;
     intensity = Color::BLACK;
+    newRay.type = Ray::Diffused;
     return false;
 }
 
@@ -129,11 +130,17 @@ void Material::ashikhmin(const QVector3D &k1, const QVector3D &k2, const QVector
     float Ps1 = qSqrt((rU + 1) * (rV + 1)) / (8.0f * M_PI);
     float Ps2 = qPow(nh, ((rU * hu * hu + rV * hv * hv) / (1.0f - nh * nh))) / (kh * qMax(nk1, nk2));
     Ps = qMin(24.0f, Ps1 * Ps2 * F);
+    if (Ps != Ps) {
+        Ps = 0.0f;
+    }
 
     float Pd1 = ((28.0f * d) / (23.0f * M_PI)) * (1.0f - s);
     float Pd2 = 1.0f - qPow(1.0f - 0.5f * nk1, 5.0f);
     float Pd3 = 1.0f - qPow(1.0f - 0.5f * nk2, 5.0f);
     Pd = Pd1 * Pd2 * Pd3;
+    if (Pd != Pd) {
+        Pd = 0.0f;
+    }
 }
 
 QString const& Material::name() const
@@ -154,19 +161,4 @@ Texture *Material::normalMap()
 void Material::setNormalMap(Texture *normalMap)
 {
     _normalMap = normalMap;
-}
-
-Material::Type Material::type() const
-{
-    return _type;
-}
-
-bool Material::isType(Material::Type test) const
-{
-    return _type & test;
-}
-
-void Material::setType(Material::Type type)
-{
-    _type = type;
 }

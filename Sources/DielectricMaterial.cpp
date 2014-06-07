@@ -6,9 +6,8 @@
 #include "Config.h"
 
 DielectricMaterial::DielectricMaterial()
-    : _n(1.0003f), _absorptionCoef(0.0f), _absorptionColor(Color::WHITE), _roughness(0.2f)
+    : _n(config->refractionIndex()), _absorptionCoef(0.0f), _absorptionColor(Color::WHITE), _roughness(0.2f)
 {
-    setType(Type(Type::Reflection | Type::Transmission));
     setName("Dielectric Material");
 }
 
@@ -54,6 +53,7 @@ bool DielectricMaterial::sampleRay(const Ray &ray, const Intersection &hit, Ray 
         newRay.origin = hit.position;
         newRay.direction = ray1.second;
         newRay.refraction = ni;
+        newRay.type = Ray::Reflected;
     } else if (rays.size() == 2) {
         QPair<float, QVector3D> const& ray2 = rays.at(1);
         intensity = Color::WHITE;
@@ -66,8 +66,10 @@ bool DielectricMaterial::sampleRay(const Ray &ray, const Intersection &hit, Ray 
             intensity.Green *= qExp(s * (1.0f - _absorptionColor.Green));
             intensity.Blue *= qExp(s * (1.0f - _absorptionColor.Blue));
         }
+        newRay.type = Ray::Transmitted;
     } else {
         intensity = Color::BLACK;
+        newRay.type = Ray::Diffused;
         return false;
     }
     return true;

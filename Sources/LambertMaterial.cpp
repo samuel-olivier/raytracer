@@ -8,7 +8,6 @@
 
 LambertMaterial::LambertMaterial() : _diffuseColor(new UniformColor(Color::WHITE))
 {
-    setType(Type::Diffuse);
     setName("Lambert Material");
 }
 
@@ -37,7 +36,7 @@ void LambertMaterial::setDiffuseColor(const Color &diffuseColor)
 void LambertMaterial::computeReflectance(Color &col, const QVector3D &in, const Ray &, const Intersection &hit) const
 {
     _diffuseColor->evaluateColor(hit.texCoord, col);
-    col.Scale(QVector3D::dotProduct(in, hit.normal) / M_PI);
+    col.Scale(1.0f / M_PI);
 }
 
 bool LambertMaterial::sampleRay(const Ray &, const Intersection &hit, Ray &newRay, Color &intensity) const
@@ -50,5 +49,6 @@ bool LambertMaterial::sampleRay(const Ray &, const Intersection &hit, Ray &newRa
     newRay.origin = hit.position;
     newRay.direction = hit.normal * qSqrt(t) + hit.u * v * qCos(u) + hit.v * v * qSin(u);
     _diffuseColor->evaluateColor(hit.texCoord, intensity);
+    newRay.type = Ray::Diffused;
     return true;
 }

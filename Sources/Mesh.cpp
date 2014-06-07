@@ -27,6 +27,9 @@ bool Mesh::intersect(const Ray &ray, Intersection &hit)
             success = true;
         }
     }
+    if (success) {
+        hit.light = 0;
+    }
     return success;
 }
 
@@ -82,31 +85,21 @@ void Mesh::generateTextureTangents()
     for (int i = 0; i < _triangles.size(); ++i) {
         Triangle* tri = _triangles[i];
 
-        QVector2D F = tri->v1->texCoord - tri->v0->texCoord;
-        QVector2D G = tri->v2->texCoord- tri->v0->texCoord;
-        if (F.lengthSquared() == 0.0f || G.lengthSquared() == 0.0f ) {
+        QVector2D t = tri->v1->texCoord - tri->v0->texCoord;
+        QVector2D s = tri->v2->texCoord - tri->v0->texCoord;
+        if (s.lengthSquared() == 0.0f || t.lengthSquared() == 0.0f ) {
             tri->v0->generateTangents();
             tri->v1->generateTangents();
             tri->v2->generateTangents();
         } else {
-            QVector3D D = tri->v1->position - tri->v0->position;
-            QVector3D E = tri->v2->position - tri->v0->position;
-            QMatrix2x2 GF;
-            GF.m[0][0] = G.y();
-            GF.m[0][1] = -F.y();
-            GF.m[1][0] = -G.x();
-            GF.m[1][1] = F.x();
-            QMatrix3x2 DE;
-            DE.m[0][0] = D.x();
-            DE.m[0][1] = D.y();
-            DE.m[0][2] = D.z();
-            DE.m[1][0] = E.x();
-            DE.m[1][1] = E.y();
-            DE.m[1][2] = E.z();
-            QMatrix3x2 m = 1.0f / (F.x() * G.y() - F.y() * G.x()) * (GF * DE);
-            QVector3D u(m.m[0][0], m.m[0][1], m.m[0][2]);
-            QVector3D v(m.m[1][0], m.m[1][1], m.m[1][2]);
+            QVector3D v2 = tri->v1->position - tri->v0->position;
+            QVector3D v1 = tri->v2->position - tri->v0->position;
 
+            float r = 1.0f / (s.x() * t.y() - s.y() * t.x());
+            QVector3D u((t.y() * v1.x() - t.x() * v2.x()) * r, (t.y() * v1.y() - t.x() * v2.y()) * r,
+                            (t.y() * v1.z() - t.x() * v2.z()) * r);
+            QVector3D v((s.x() * v2.x() - s.y() * v1.x()) * r, (s.x() * v2.y() - s.y() * v1.y()) * r,
+                            (s.x() * v2.z() - s.y() * v1.z()) * r);
             u.normalize();
             v.normalize();
             tri->v0->u += u;

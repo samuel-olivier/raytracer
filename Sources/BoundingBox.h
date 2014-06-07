@@ -29,6 +29,8 @@ public:
 
     bool intersect(Ray const& ray, float maxDistance) const;
 
+    float   surfaceArea() const;
+
     QVector3D   center() const;
     QVector3D   size() const;
 

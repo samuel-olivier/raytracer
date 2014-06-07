@@ -111,64 +111,74 @@ void Config::setMaximumNodesPerBox(int maximumNodesPerBox)
     _maximumNodesPerBox = maximumNodesPerBox;
 }
 
-int Config::pathDepth() const
+Integrator::Type Config::integrator() const
 {
-    return _pathDepth;
+    return _integrator;
 }
 
-void Config::setPathDepth(int pathDepth)
+void Config::setIntegrator(Integrator::Type integrator)
 {
-    _pathDepth = pathDepth;
+    _integrator = integrator;
 }
 
-int Config::pathSampleNumber() const
+int Config::pathtracingPathDepth() const
 {
-    return _pathSampleNumber;
+    return _pathtracingPathDepth;
 }
 
-void Config::setPathSampleNumber(int pathSampleNumber)
+void Config::setPathtracingPathDepth(int pathtracingPathDepth)
 {
-    _pathSampleNumber = pathSampleNumber;
+    _pathtracingPathDepth = pathtracingPathDepth;
 }
 
-bool Config::usePhotonMapping() const
+int Config::photonMappingPhotonNumber() const
 {
-    return _usePhotonMapping;
+    return _photonMappingPhotonNumber;
 }
 
-void Config::setUsePhotonMapping(bool usePhotonMapping)
+void Config::setPhotonMappingPhotonNumber(int photonNumber)
 {
-    _usePhotonMapping = usePhotonMapping;
+    _photonMappingPhotonNumber = photonNumber;
 }
 
-int Config::photonNumber() const
+int Config::photonMappingNumberNearestPhoton() const
 {
-    return _photonNumber;
+    return _photonMappingNumberNearestPhoton;
 }
 
-void Config::setPhotonNumber(int photonNumber)
+void Config::setPhotonMappingNumberNearestPhoton(int numberNearestPhoton)
 {
-    _photonNumber = photonNumber;
+    _photonMappingNumberNearestPhoton = numberNearestPhoton;
 }
 
-int Config::numberNearestPhoton() const
+float Config::photonMappingMaximumSearchRadius() const
 {
-    return _numberNearestPhoton;
+    return _photonMappingMaximumSearchRadius;
 }
 
-void Config::setNumberNearestPhoton(int numberNearestPhoton)
+void Config::setPhotonMappingMaximumSearchRadius(float photonMaximumRadius)
 {
-    _numberNearestPhoton = numberNearestPhoton;
+    _photonMappingMaximumSearchRadius = photonMaximumRadius;
 }
 
-float Config::photonMaximumRadius() const
+int Config::photonMappingMapDepth() const
 {
-    return _photonMaximumRadius;
+    return _photonMappingMapDepth;
 }
 
-void Config::setPhotonMaximumRadius(float photonMaximumRadius)
+void Config::setPhotonMappingMapDepth(int photonMappingMapDepth)
 {
-    _photonMaximumRadius = photonMaximumRadius;
+    _photonMappingMapDepth = photonMappingMapDepth;
+}
+
+int Config::photonMappingRayDepth() const
+{
+    return _photonMappingRayDepth;
+}
+
+void Config::setPhotonMappingRayDepth(int photonMappingRayDepth)
+{
+    _photonMappingRayDepth = photonMappingRayDepth;
 }
 
 float Config::refractionIndex() const
@@ -224,17 +234,20 @@ Config::Config()
     _renderingTaskNumber = 2000;
     _lightSampleNumber = 2;
     _antialiasingResolution = 1;
-    _antialiasingType = AntialiasingType::Shirley;
+    _antialiasingType = AntialiasingType::Jittered;
     _maximumNodesPerBox = 10;
-    _pathDepth = 5;
 
-    _usePhotonMapping = true;
-    _photonNumber = 200000;
-    _numberNearestPhoton = 700;
-    _photonMaximumRadius = 0.005f;
+    _integrator = Integrator::Pathtracing;
+
+    _pathtracingPathDepth = 5;
+
+    _photonMappingPhotonNumber = 100000;
+    _photonMappingNumberNearestPhoton = 700;
+    _photonMappingMaximumSearchRadius = 0.0001f;
+    _photonMappingMapDepth = 10;
+    _photonMappingRayDepth = 5;
 
     _refractionIndex = 1.0003f;
-    _pathSampleNumber = 1;
 
     _defaultCameraVerticalFOV = 40.0f;
     _defaultCameraAspectRatio = 1.33f;

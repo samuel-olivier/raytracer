@@ -87,5 +87,5 @@ void Box::set(float x, float y, float z)
 
     _boundingBox = BoundingBox(p000, p111);
     _center = _boundingBox.center();
-    generateTangents();
+    generateTextureTangents();
 }

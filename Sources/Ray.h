@@ -11,7 +11,8 @@ public:
         Primary,
         Shadow,
         Reflected,
-        Photon
+        Transmitted,
+        Diffused
     };
 
     Ray();

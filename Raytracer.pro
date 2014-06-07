@@ -56,7 +56,10 @@ SOURCES += Sources/main.cpp\
     Sources/SpotLight.cpp \
     Sources/Photon.cpp \
     Sources/KDTreeNode.cpp \
-    Sources/PhotonMap.cpp
+    Sources/PhotonMap.cpp \
+    Sources/PathtracingIntegrator.cpp \
+    Sources/PhotonMappingIntegrator.cpp \
+    Sources/Integrator.cpp
 
 HEADERS  += Sources/MainWindow.h \
     Sources/Renderer.h \
@@ -102,7 +105,10 @@ HEADERS  += Sources/MainWindow.h \
     Sources/SpotLight.h \
     Sources/Photon.h \
     Sources/KDTreeNode.h \
-    Sources/PhotonMap.h
+    Sources/PhotonMap.h \
+    Sources/Integrator.h \
+    Sources/PathtracingIntegrator.h \
+    Sources/PhotonMappingIntegrator.h
 
 FORMS    += Forms/MainWindow.ui
 

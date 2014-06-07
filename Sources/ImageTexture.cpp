@@ -68,6 +68,8 @@ void ImageTexture::_pixelColor(float x, float y, Color &col)
         wrapCoordinates(x, y);
         int xCoord = (x <= 0) ? 0 : ((x >= 1.0f) ? (_image.width() - 1) : int(x * _image.width()));
         int yCoord = (y <= 0) ? 0 : ((y >= 1.0f) ? (_image.height() - 1) : int(y * _image.height()));
+        xCoord = qMax(0, qMin(_image.width() - 1, xCoord));
+        yCoord = qMax(0, qMin(_image.height() - 1, yCoord));
         QColor color = _image.pixel(xCoord, yCoord);
         col.Set(color.redF(), color.greenF(), color.blueF());
     } else {

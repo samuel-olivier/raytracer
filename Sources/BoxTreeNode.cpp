@@ -8,6 +8,8 @@
 #include "Triangle.h"
 #include "Config.h"
 
+#define SAH_TREE
+
 class NodeComp {
 public:
     NodeComp(int dim)
@@ -67,11 +69,16 @@ void BoxTreeNode::construct(const QVector<Node *> &nodes)
 //    qDebug() << "";
 }
 
-void BoxTreeNode::_construct(const QVector<Node *> &nodes, int currentDeepness)
+#define Ct 0.125f
+#define Ci 1.0f
+
+void BoxTreeNode::_construct(const QVector<Node *> &nodes, int currentDeepness, bool computeBoundingBox)
 {
     nodeNumber++;
-    for (int i = 0; i < nodes.size(); ++i) {
-        _boundingBox.merge(nodes[i]->boundingBox());
+    if (computeBoundingBox) {
+        for (int i = 0; i < nodes.size(); ++i) {
+            _boundingBox.merge(nodes[i]->boundingBox());
+        }
     }
     _center = _boundingBox.center();
     if (nodes.size() <= config->maximumNodesPerBox()) {
@@ -81,6 +88,65 @@ void BoxTreeNode::_construct(const QVector<Node *> &nodes, int currentDeepness)
         return ;
     }
 
+#ifdef SAH_TREE
+    float boxArea = _boundingBox.surfaceArea();
+    float minCost = std::numeric_limits<float>::max();
+    BoundingBox finalB1;
+    BoundingBox finalB2;
+    _axis = -1;
+    float split = 0;
+    for (int axis = 0; axis < 3; ++axis) {
+        for (float div = 0.0f; div < 1.0f; div += 0.1f) {
+            BoundingBox b1;
+            BoundingBox b2;
+            int s1 = 0;
+            int s2 = 0;
+
+            float tmpSplit = _boundingBox.min[axis] + div * (_boundingBox.max[axis] - _boundingBox.min[axis]);
+            for (Node* node : nodes) {
+                if (node->center(axis) < tmpSplit) {
+                    ++s1;
+                    b1.merge(node->boundingBox());
+                } else {
+                    ++s2;
+                    b2.merge(node->boundingBox());
+                }
+            }
+
+            float currentCost = Ct + (b1.surfaceArea() / boxArea) * s1 * Ci + (b2.surfaceArea() / boxArea) * s2 * Ci;
+            if (currentCost < minCost) {
+                minCost = currentCost;
+                split = tmpSplit;
+                _axis = axis;
+                finalB1 = b1;
+                finalB2 = b2;
+            }
+        }
+    }
+    QVector<Node*> t1;
+    QVector<Node*> t2;
+    t1.reserve(nodes.size());
+    t2.reserve(nodes.size());
+    for (Node* node : nodes) {
+        if (node->center(_axis) > split) {
+            t2.append(node);
+        } else {
+            t1.append(node);
+        }
+    }
+    t1.squeeze();
+    t2.squeeze();
+
+    if (_axis >= 0) {
+        _child1 = new BoxTreeNode;
+        _child1->_boundingBox = finalB1;
+        _child1->_construct(t1, currentDeepness + 1, false);
+
+        _child2 = new BoxTreeNode;
+        _child2->_boundingBox = finalB2;
+        _child2->_construct(t2, currentDeepness + 1, false);
+    }
+#else
     QVector3D boxSize = _boundingBox.size();
 
     _axis = 2;
@@ -113,13 +179,12 @@ void BoxTreeNode::_construct(const QVector<Node *> &nodes, int currentDeepness)
     t1.squeeze();
     t2.squeeze();
 
-//    qDebug() << "Axe : " << _axis << " | " << _boundingBox.min << " | " << _boundingBox.max << " | " << _boundingBox.size() << t1.size() << t2.size();
-
     _child1 = new BoxTreeNode;
     _child1->_construct(t1, currentDeepness + 1);
 
     _child2 = new BoxTreeNode;
     _child2->_construct(t2, currentDeepness + 1);
+#endif
 }
 
 bool BoxTreeNode::intersect(const Ray &ray, Intersection &hit)
@@ -156,6 +221,9 @@ bool BoxTreeNode::intersect(const Ray &ray, Intersection &hit)
                 }
                 success = true;
             }
+        }
+        if (success) {
+            hit.light = 0;
         }
         return success;
     }

@@ -14,7 +14,7 @@ float SpotLight::illuminate(const QVector3D &pos, Color &col, QVector3D &toLight
 {
     ltPos = _position;
     toLight = ltPos - pos;
-    float bright = intensity();
+    float bright = intensity() / toLight.lengthSquared();
     toLight.normalize();
     float alpha = qAcos(QVector3D::dotProduct(toLight, -_direction));
     if (alpha > _outerAngle * 0.5f) {
@@ -28,6 +28,15 @@ float SpotLight::illuminate(const QVector3D &pos, Color &col, QVector3D &toLight
 
 void SpotLight::sampleRay(Ray &newRay, float &intensity, Color &color) const
 {
+    float angle;
+    do {
+        newRay.direction.setX((float(qrand()) / (RAND_MAX * 0.5f)) - 1.0f);
+        newRay.direction.setY((float(qrand()) / (RAND_MAX * 0.5f)) - 1.0f);
+        newRay.direction.setZ((float(qrand()) / (RAND_MAX * 0.5f)) - 1.0f);
+        angle = qAcos(QVector3D::dotProduct(_direction, newRay.direction.normalized()));
+    } while (newRay.direction.lengthSquared() > 1 || angle > _outerAngle * 0.5f);
+    newRay.origin = _position;
+    newRay.direction.normalize();
     intensity = this->intensity();
     color = baseColor();
 }

@@ -21,6 +21,8 @@
 #include "PointLight.h"
 #include "DirectionalLight.h"
 #include "SpotLight.h"
+#include "DielectricMaterial.h"
+
 
 AssimpLoader::AssimpLoader()
     : _importer(0)
@@ -158,47 +160,100 @@ void AssimpLoader::_loadMaterials(const aiScene *scene)
     _materials.resize(scene->mNumMaterials);
     for (unsigned int i = 0; i < scene->mNumMaterials; ++i) {
         aiMaterial* mtl = scene->mMaterials[i];
-        AshikhminMaterial* mat = new AshikhminMaterial;
+        Material* material = 0;
         aiString path;
-        aiColor4D diffuse;
-        aiColor4D specular;
-        float reflection = -1.0f;
+        aiColor4D transparency;
+        QString matName;
+        Color trans = Color::BLACK;
+        if (mtl->Get(AI_MATKEY_NAME, path) == AI_SUCCESS) {
+            matName = path.C_Str();
+        }
+        if (mtl->Get(AI_MATKEY_COLOR_TRANSPARENT, transparency) == AI_SUCCESS) {
+            trans = Color(transparency.r, transparency.g, transparency.b);
+        }
+        if (trans.isBlack()) {
+            aiColor4D diffuse;
+            aiColor4D specular;
+            float reflection = -1.0f;
+            AshikhminMaterial* mat = new AshikhminMaterial;
 
-        if (aiGetMaterialString(mtl, AI_MATKEY_NAME, &path) == AI_SUCCESS) {
-            mat->setName(path.C_Str());
+            mat->setName(matName);
+            if (aiGetMaterialColor(mtl, AI_MATKEY_COLOR_DIFFUSE, &diffuse) == AI_SUCCESS) {
+                mat->setDiffuseColor(Color(diffuse.g, diffuse.r, diffuse.b));
+            }
+            if(aiGetMaterialColor(mtl, AI_MATKEY_COLOR_SPECULAR, &specular) == AI_SUCCESS) {
+                mat->setSpecularColor(Color(specular.r, specular.g, specular.b));
+            }
+            if (aiGetMaterialFloat(mtl, AI_MATKEY_REFLECTIVITY, &reflection) == AI_SUCCESS) {
+                reflection = qMin(1.0f, reflection);
+                reflection = qMax(0.0f, reflection);
+                mat->setSpecularLevel(reflection);
+                mat->setDiffuseLevel(1.0f - reflection);
+            }
+            if (mtl->GetTexture(aiTextureType_DIFFUSE, 0, &path) == AI_SUCCESS) {
+                ImageTexture* t = new ImageTexture(_baseDir + "/" + path.C_Str());
+                if (t->hasImage()) {
+                    mat->setDiffuseColor(t);
+                } else {
+                    delete t;
+                }
+            }
+            if (mtl->GetTexture(aiTextureType_SPECULAR, 0, &path) == AI_SUCCESS) {
+                ImageTexture* t = new ImageTexture(_baseDir + "/" + path.C_Str());
+                if (t->hasImage()) {
+                    mat->setSpecularColor(t);
+                } else {
+                    delete t;
+                }
+            }
+//            aiColor4D diffuse;
+//            LambertMaterial* mat = new LambertMaterial;
+
+//            if (mtl->Get(AI_MATKEY_COLOR_DIFFUSE, diffuse) == AI_SUCCESS) {
+//                mat->setDiffuseColor(Color(diffuse.g * 0.8f, diffuse.r * 0.8f, diffuse.b * 0.8f));
+//            }
+//            if (mtl->GetTexture(aiTextureType_DIFFUSE, 0, &path) == AI_SUCCESS) {
+//                ImageTexture* t = new ImageTexture(_baseDir + "/" + path.C_Str());
+//                if (t->hasImage()) {
+//                    mat->setDiffuseColor(t);
+//                } else {
+//                    delete t;
+//                }
+//            }
+            material = mat;
+        } else {
+            DielectricMaterial* mat = new DielectricMaterial;
+            float n;
+
+            mat->setAbsorptionColor(trans);
+            mat->setAbsorptionCoef(20.0f);
+            if (mtl->Get(AI_MATKEY_REFRACTI, n) == AI_SUCCESS) {
+                mat->setN(n);
+            }
+            if (mtl->Get(AI_MATKEY_OPACITY, n) == AI_SUCCESS) {
+                mat->setAbsorptionCoef(20.0f * n);
+            }
+            material = mat;
         }
-        if (aiGetMaterialColor(mtl, AI_MATKEY_COLOR_DIFFUSE, &diffuse) == AI_SUCCESS) {
-            mat->setDiffuseColor(Color(diffuse.r, diffuse.g, diffuse.b));
-        }
-        if(aiGetMaterialColor(mtl, AI_MATKEY_COLOR_SPECULAR, &specular) == AI_SUCCESS) {
-            mat->setSpecularColor(Color(specular.r, specular.g, specular.b));
-        }
-        if (aiGetMaterialFloat(mtl, AI_MATKEY_REFLECTIVITY, &reflection) == AI_SUCCESS) {
-            reflection = qMin(1.0f, reflection);
-            reflection = qMax(0.0f, reflection);
-            mat->setSpecularLevel(reflection);
-            mat->setDiffuseLevel(1.0f - reflection);
-        }
-        if (mtl->GetTexture(aiTextureType_DIFFUSE, 0, &path) == AI_SUCCESS) {
+        material->setName(matName);
+        if (mtl->GetTexture(aiTextureType_NORMALS, 0, &path) == AI_SUCCESS) {
             ImageTexture* t = new ImageTexture(_baseDir + "/" + path.C_Str());
             if (t->hasImage()) {
-                mat->setDiffuseColor(t);
+                material->setNormalMap(t);
             } else {
                 delete t;
             }
         }
-        if (mtl->GetTexture(aiTextureType_SPECULAR, 0, &path) == AI_SUCCESS) {
+        Texture* alphaMap = 0;
+        if (mtl->GetTexture(aiTextureType_OPACITY, 0, &path) == AI_SUCCESS) {
             ImageTexture* t = new ImageTexture(_baseDir + "/" + path.C_Str());
             if (t->hasImage()) {
-                mat->setSpecularColor(t);
+                alphaMap = t;
             } else {
                 delete t;
             }
         }
-        _materials[i] = mat;
-        Color v1, v2;
-        mat->diffuseColor()->evaluateColor(0, 0, v1);
-        mat->specularColor()->evaluateColor(0, 0, v2);
+        _materials[i] = QPair<Texture*, Material*>(alphaMap, material);
     }
 }
 
@@ -213,6 +268,7 @@ void AssimpLoader::_loadAssimpNode(const aiScene *scene, aiNode *assimpNode, int
     mtx.setColumn(3, QVector4D(aiMtx.a4, aiMtx.b4, aiMtx.c4, aiMtx.d4));
 
     mtx = parent * mtx;
+
 
     if (camera && QString(assimpNode->mName.C_Str()).toLower() == "camera") {
         camera->setMatrix(mtx);
@@ -288,7 +344,12 @@ void AssimpLoader::_loadAssimpNode(const aiScene *scene, aiNode *assimpNode, int
         }
         mesh->setTriangles(triangles);
         if (assimpMesh->mMaterialIndex >= 0 && assimpMesh->mMaterialIndex < (unsigned int)_materials.size()) {
-            mesh->setMaterial(_materials[assimpMesh->mMaterialIndex]);
+            QPair<Texture*, Material*> const& mat = _materials[assimpMesh->mMaterialIndex];
+            mesh->setMaterial(mat.second);
+            if (mat.first) {
+                mesh->setAlphaMap(mat.first);
+            }
+
         }
     }
     for (uint i = 0; i < assimpNode->mNumChildren; ++i) {

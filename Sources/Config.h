@@ -4,6 +4,8 @@
 #include <QVector3D>
 #include <QString>
 
+#include "Integrator.h"
+
 #define config Config::instance()
 
 class Config
@@ -48,23 +50,28 @@ public:
     int     maximumNodesPerBox() const;
     void    setMaximumNodesPerBox(int maximumNodesPerBox);
 
-    int     pathDepth() const;
-    void    setPathDepth(int pathDepth);
+    Integrator::Type    integrator() const;
+    void    setIntegrator(Integrator::Type integrator);
 
-    int     pathSampleNumber() const;
-    void    setPathSampleNumber(int pathSampleNumber);
 
-    bool    usePhotonMapping() const;
-    void    setUsePhotonMapping(bool usePhotonMapping);
+    int     pathtracingPathDepth() const;
+    void    setPathtracingPathDepth(int pathtracingPathDepth);
 
-    int     photonNumber() const;
-    void    setPhotonNumber(int photonNumber);
 
-    int     numberNearestPhoton() const;
-    void    setNumberNearestPhoton(int numberNearestPhoton);
+    int     photonMappingPhotonNumber() const;
+    void    setPhotonMappingPhotonNumber(int photonMappingPhotonNumber);
 
-    float   photonMaximumRadius() const;
-    void    setPhotonMaximumRadius(float photonMaximumRadius);
+    int     photonMappingNumberNearestPhoton() const;
+    void    setPhotonMappingNumberNearestPhoton(int photonMappingNumberNearestPhoton);
+
+    float   photonMappingMaximumSearchRadius() const;
+    void    setPhotonMappingMaximumSearchRadius(float photonMappingMaximumSearchRadius);
+
+    int     photonMappingMapDepth() const;
+    void    setPhotonMappingMapDepth(int photonMappingMapDepth);
+
+    int     photonMappingRayDepth() const;
+    void    setPhotonMappingRayDepth(int photonMappingRayDepth);
 
     float   refractionIndex() const;
     void    setRefractionIndex(float refractionIndex);
@@ -97,12 +104,18 @@ private:
     int         _maximumNodesPerBox;
     AntialiasingType    _antialiasingType;
     float       _refractionIndex;
-    int         _pathDepth;
-    int         _pathSampleNumber;
-    bool        _usePhotonMapping;
-    int         _photonNumber;
-    int         _numberNearestPhoton;
-    float       _photonMaximumRadius;
+
+    Integrator::Type    _integrator;
+
+    // Pathtracing
+    int         _pathtracingPathDepth;
+
+    // Photon Mapping
+    int         _photonMappingPhotonNumber;
+    int         _photonMappingNumberNearestPhoton;
+    float       _photonMappingMaximumSearchRadius;
+    int         _photonMappingMapDepth;
+    int         _photonMappingRayDepth;
 
     float       _defaultCameraVerticalFOV;
     float       _defaultCameraAspectRatio;

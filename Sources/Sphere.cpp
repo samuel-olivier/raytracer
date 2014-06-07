@@ -70,6 +70,7 @@ bool Sphere::intersect(const Ray &ray, Intersection &hit)
             hit.u.normalize();
         }
         hit.v = QVector3D::crossProduct(hit.normal, hit.u);
+        hit.light = 0;
         return true;
     }
     return false;

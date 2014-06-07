@@ -93,6 +93,11 @@ bool BoundingBox::intersect(const Ray &ray, float maxDistance) const
     return false;
 }
 
+float BoundingBox::surfaceArea() const
+{
+    QVector3D s = size();
+    return s.x() * s.y() * 2.0f + s.x() * s.z() * 2.0f + s.y() * s.z() * 2.0f;
+}
 QVector3D BoundingBox::center() const
 {
     return (min + max) * 0.5f;

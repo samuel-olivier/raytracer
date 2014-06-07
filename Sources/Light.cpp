@@ -4,7 +4,7 @@
 #include <QtMath>
 
 Light::Light()
-    : _baseColor(Color::WHITE), _intensity(1.0f)
+    : _baseColor(Color::WHITE), _intensity(1.0f), _generatePhotons(true)
 {
 }
 
@@ -35,4 +35,14 @@ void Light::setIntensity(float intensity)
 void Light::intersectionColor(Color &col)
 {
     col = Color::BLACK;
+}
+
+bool Light::generatePhotons() const
+{
+    return _generatePhotons;
+}
+
+void Light::setGeneratePhotons(bool generatePhotons)
+{
+    _generatePhotons = generatePhotons;
 }

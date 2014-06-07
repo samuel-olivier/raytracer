@@ -58,7 +58,7 @@ float AreaLight::illuminate(const QVector3D &pos, Color &col, QVector3D &toLight
     }
     ltPos = t->sample();
     toLight = ltPos - pos;
-    float bright = intensity() / (_totalArea * toLight.lengthSquared());
+    float bright = intensity() * _totalArea / (toLight.lengthSquared());
     toLight.normalize();
     col = baseColor();
     float cosA = QVector3D::dotProduct(toLight, -t->normal());
@@ -77,7 +77,7 @@ void AreaLight::sampleRay(Ray &newRay, float &intensity, Color &color) const
         float u = 2.0f * M_PI * s;
         float v = qSqrt(1.0f - t);
 
-        intensity = this->intensity() / _totalArea;
+        intensity = M_PI * this->intensity() * _totalArea;
         color = baseColor();
         newRay.direction = tri->normal() * qSqrt(t) + tri->v0->u * v * qCos(u) + tri->v0->v * v * qSin(u);
         newRay.direction.normalize();
@@ -88,7 +88,7 @@ void AreaLight::sampleRay(Ray &newRay, float &intensity, Color &color) const
 void AreaLight::intersectionColor(Color &col)
 {
     col = baseColor();
-    col.Scale(intensity() / _totalArea);
+    col.Scale(intensity() / M_PI);
 }
 
 int AreaLight::sampleNumber() const

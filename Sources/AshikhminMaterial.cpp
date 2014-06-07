@@ -14,7 +14,6 @@ AshikhminMaterial::AshikhminMaterial()
     _specularColor = new UniformColor(Color::WHITE);
     _roughnessU = new UniformFloat(500.0f);
     _roughnessV = new UniformFloat(500.0f);
-    setType(Type(Type::Reflection | Type::Diffuse));
 }
 
 AshikhminMaterial::~AshikhminMaterial()
@@ -160,7 +159,6 @@ void AshikhminMaterial::computeReflectance(Color &col, const QVector3D &in, cons
     col = Color::BLACK;
     col.AddScaled(sColor, Ps);
     col.AddScaled(dColor, Pd);
-    col.Scale(QVector3D::dotProduct(in, hit.normal));
 }
 
 bool AshikhminMaterial::sampleRay(const Ray &ray, const Intersection &hit, Ray &newRay, Color &intensity) const
@@ -203,6 +201,7 @@ bool AshikhminMaterial::sampleRay(const Ray &ray, const Intersection &hit, Ray &
         intensity = sColor;
         newRay.origin = hit.position;
         newRay.direction = k2;
+        newRay.type = Ray::Reflected;
     } else {
         float s = float(qrand()) / RAND_MAX;
         float t = float(qrand()) / RAND_MAX;
@@ -215,6 +214,7 @@ bool AshikhminMaterial::sampleRay(const Ray &ray, const Intersection &hit, Ray &
         newRay.direction = hit.normal * qSqrt(t) + hit.u * v * qCos(u) + hit.v * v * qSin(u);
         newRay.direction.normalize();
         intensity = dColor;
+        newRay.type = Ray::Diffused;
     }
     return true;
 }

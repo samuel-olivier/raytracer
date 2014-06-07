@@ -11,6 +11,7 @@
 #include "SceneGenerator.h"
 #include "Logger.h"
 #include "Camera.h"
+#include "Integrator.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent), _ui(new Ui::MainWindow), _nextScene(QString::null)
@@ -36,6 +37,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(_ui->action_Stop, SIGNAL(triggered()), SLOT(onStop()));
 
     connect(_ui->sceneNames, SIGNAL(currentIndexChanged(QString)), SLOT(onLoadScene()));
+    connect(_ui->integrator, SIGNAL(currentTextChanged(QString)), SLOT(onIntegratorChanged()));
 
     connect(_ui->renderer, SIGNAL(renderingFinished()), SLOT(onRenderingFinished()));
     connect(_ui->renderer, SIGNAL(renderingStarted()), SLOT(onRenderingStarted()));
@@ -63,8 +65,7 @@ void MainWindow::onSaveImage()
 void MainWindow::onPlayPause()
 {
     if (!_ui->renderer->isRendering()) {
-        _loadConfig();
-        _ui->renderer->render();
+        _launchRenderer();
         _ui->action_Play_Pause->setToolTip("Pause");
         _ui->action_Play_Pause->setIcon(QIcon(":/Resources/pause.png"));
         logger->showMessage("Rendering...");
@@ -137,9 +138,23 @@ void MainWindow::onClick(Intersection hit)
     _ui->focalPlane->setValue(hit.position.distanceToPoint(_ui->renderer->camera()->position()));
 }
 
+void MainWindow::onIntegratorChanged()
+{
+    QString v = _ui->integrator->currentText();
+    _ui->photonMapping->setVisible(false);
+    _ui->pathtracing->setVisible(false);
+    if (v == "Photon Mapping") {
+        _ui->photonMapping->setVisible(true);
+    } else {
+        _ui->pathtracing->setVisible(true);
+    }
+}
+
 void MainWindow::_loadScene(const QString &scene)
 {
     sceneGenerator->loadScene(scene, _ui->renderer);
+    _ui->renderer->setIntegrator(0);
+
     _nextScene = QString::null;
     _ui->epsilon->setValue(Config::Epsilon);
     _ui->verticalFov->setValue(_ui->renderer->camera()->verticalFOV());
@@ -148,6 +163,20 @@ void MainWindow::_loadScene(const QString &scene)
     _ui->focalPlane->setValue(_ui->renderer->camera()->focalPlane());
     _ui->imageWidth->setValue(_ui->renderer->imageSize().width());
     _ui->imageHeight->setValue(_ui->renderer->imageSize().height());
+
+    _ui->photonMappingPhotonNumber->setValue(config->photonMappingPhotonNumber());
+    _ui->photonMappingNearestPhotons->setValue(config->photonMappingNumberNearestPhoton());
+    _ui->photonMappingSearchRadius->setValue(config->photonMappingMaximumSearchRadius());
+}
+
+void MainWindow::_launchRenderer()
+{
+    _loadConfig();
+    Integrator* integrator = _ui->renderer->integrator();
+    if (!integrator || integrator->type() != config->integrator()) {
+        _ui->renderer->setIntegrator(Integrator::instanciateIntegrator(config->integrator()));
+    }
+    _ui->renderer->render();
 }
 
 void MainWindow::_loadConfig()
@@ -171,8 +200,6 @@ void MainWindow::_loadConfig()
     }
     config->setAntialiasingType(type);
 
-    config->setPathDepth(_ui->pathDepth->value());
-    config->setPathSampleNumber(_ui->pathSampleNumber->value());
     config->setRefractionIndex(_ui->refractionIndex->value());
 
     Config::Epsilon = _ui->epsilon->value();
@@ -181,6 +208,23 @@ void MainWindow::_loadConfig()
     _ui->renderer->camera()->setFocalPlane(_ui->focalPlane->value());
 
     _ui->renderer->setImageSize(_ui->imageWidth->value(), _ui->imageHeight->value());
+
+    v = _ui->integrator->currentText();
+    Integrator::Type iType;
+    if (v == "Photon Mapping") {
+        iType = Integrator::PhotonMapping;
+    } else {
+        iType = Integrator::Pathtracing;
+    }
+    config->setIntegrator(iType);
+
+    config->setPathtracingPathDepth(_ui->pathtracingPathDepth->value());
+
+    config->setPhotonMappingMapDepth(_ui->photonMappingMapDepth->value());
+    config->setPhotonMappingPhotonNumber(_ui->photonMappingPhotonNumber->value());
+    config->setPhotonMappingRayDepth(_ui->photonMappingRayDepth->value());
+    config->setPhotonMappingNumberNearestPhoton(_ui->photonMappingNearestPhotons->value());
+    config->setPhotonMappingMaximumSearchRadius(_ui->photonMappingSearchRadius->value());
 }
 
 void MainWindow::_setConfig()
@@ -194,22 +238,20 @@ void MainWindow::_setConfig()
     if (_ui->antialiasingType->count() != 4) {
         _ui->antialiasingType->clear();
         _ui->antialiasingType->addItems(QStringList() << "Uniform" << "Random" << "Jittered" << "Shirley");
-
-        QString v;
-        Config::AntialiasingType type = config->antialiasingType();
-        if (type == Config::Uniform) {
-            v = "Uniform";
-        } else if (type == Config::Random) {
-            v = "Random";
-        } else if (type == Config::Jittered) {
-            v = "Jittered";
-        } else {
-            v = "Shirley";
-        }
-        _ui->antialiasingType->setCurrentText(v);
     }
-    _ui->pathDepth->setValue(config->pathDepth());
-    _ui->pathSampleNumber->setValue(config->pathSampleNumber());
+    QString v;
+    Config::AntialiasingType type = config->antialiasingType();
+    if (type == Config::Uniform) {
+        v = "Uniform";
+    } else if (type == Config::Random) {
+        v = "Random";
+    } else if (type == Config::Jittered) {
+        v = "Jittered";
+    } else {
+        v = "Shirley";
+    }
+    _ui->antialiasingType->setCurrentText(v);
+
     _ui->refractionIndex->setValue(config->refractionIndex());
 
     _ui->epsilon->setValue(Config::Epsilon);
@@ -220,4 +262,25 @@ void MainWindow::_setConfig()
 
     _ui->imageWidth->setValue(_ui->renderer->imageSize().width());
     _ui->imageHeight->setValue(_ui->renderer->imageSize().height());
+
+    if (_ui->integrator->count() != 2) {
+        _ui->integrator->clear();
+        _ui->integrator->addItems(QStringList() << "Pathtracing" << "Photon Mapping");
+    }
+    Integrator::Type iType = config->integrator();
+    if (iType == Integrator::PhotonMapping) {
+        v = "Photon Mapping";
+    } else {
+        v = "Pathtracing";
+    }
+    _ui->integrator->setCurrentText(v);
+    onIntegratorChanged();
+
+    _ui->pathtracingPathDepth->setValue(config->pathtracingPathDepth());
+
+    _ui->photonMappingMapDepth->setValue(config->photonMappingMapDepth());
+    _ui->photonMappingPhotonNumber->setValue(config->photonMappingPhotonNumber());
+    _ui->photonMappingRayDepth->setValue(config->photonMappingRayDepth());
+    _ui->photonMappingNearestPhotons->setValue(config->photonMappingNumberNearestPhoton());
+    _ui->photonMappingSearchRadius->setValue(config->photonMappingMaximumSearchRadius());
 }

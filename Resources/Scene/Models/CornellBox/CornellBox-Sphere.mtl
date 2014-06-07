@@ -27,6 +27,8 @@ newmtl rightSphere
     Ns 200
     Ni 2.5
     illum 7
+	Tr 1.0 1.0 1.0
+	d 1.0 1.0 1.0
    
 newmtl floor
     Ns 10.0000

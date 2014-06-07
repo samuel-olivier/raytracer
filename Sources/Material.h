@@ -15,12 +15,6 @@ class Texture;
 class Material
 {
 public:
-    enum Type {
-        Diffuse = 0x1,
-        Reflection = 0x2,
-        Transmission = 0x4
-    };
-
     Material();
     virtual ~Material();
 
@@ -39,16 +33,9 @@ public:
     Texture*    normalMap();
     void        setNormalMap(Texture* normalMap);
 
-    Type        type() const;
-    bool        isType(Type test) const;
-
-protected:
-    void        setType(Type type);
-
 private:
     QString     _name;
     Texture*    _normalMap;
-    Type        _type;
 };
 
 #endif // MATERIAL_H

@@ -39,7 +39,7 @@ SceneGenerator* SceneGenerator::_instance = 0;
 
 SceneGenerator::SceneGenerator()
 {
-    _scenes.append(QPair<QString, Loader>("Test", &SceneGenerator::_loadSceneTest));
+//    _scenes.append(QPair<QString, Loader>("Test", &SceneGenerator::_loadSceneTest));
 
     _scenes.append(QPair<QString, Loader>("Project 1 - Cubes", &SceneGenerator::_loadProject1_Cubes));
     _scenes.append(QPair<QString, Loader>("Project 1 - Spheres", &SceneGenerator::_loadProject1_Spheres));
@@ -100,90 +100,68 @@ QList<QString> SceneGenerator::scenes() const
 
 void SceneGenerator::_loadSceneTest(Renderer *renderer)
 {
-    Config::Epsilon = 0.00001f;
+    Config::Epsilon = 0.0001f;
+    config->setPhotonMappingMaximumSearchRadius(50.0f);
+    config->setPhotonMappingNumberNearestPhoton(100.0f);
+    config->setPhotonMappingPhotonNumber(10000);
+//    config->setPhotonMaximumRadius(25.0f);
+//    config->setNumberNearestPhoton(5000.0f);
+//    config->setPhotonNumber(5000000);
 
     Camera* camera = renderer->camera();
-    camera->lookAt(QVector3D(0.0f, 0.75f, 3.0f), QVector3D(0.0f, 0.75f, 0.0f), config->yAxis());
-    camera->set(40.0f, 1.33f);
-    renderer->setImageSize(800, 600);
+    camera->set(40.0f, 1.777f);
+//    camera->setAperture(1.0f);
+//    camera->setFocalPlane(87.15381);
+//    renderer->setImageSize(1920, 1080);
+    renderer->setImageSize(800, 450);
 
     Scene* scene = new Scene;
-    scene->setSky(new UniformSky(Color(0.2f, 0.2f, 0.2f)));
-
-    MetalMaterial* metal = new MetalMaterial();
-    metal->setN(0.177f);
-    metal->setK(3.638f);
-    metal->setTransmittedColor(Color(1.0f, 1.0f, 1.0f));
-    metal->setRoughness(0.0f);
-
-    DielectricMaterial* trans = new DielectricMaterial();
-    trans->setN(1.45f);
-    trans->setAbsorptionColor(Color::GREEN);
-    trans->setAbsorptionCoef(0.0f);
-    trans->setRoughness(0.0f);
-
-    LambertMaterial* lamb = new LambertMaterial();
-    lamb->setDiffuseColor(Color::WHITE);
-
-    LambertMaterial* sp1 = new LambertMaterial();
-    sp1->setDiffuseColor(Color(0.0f, 0.0f, 1.0f));
-
-    LambertMaterial* sp2 = new LambertMaterial();
-    sp2->setDiffuseColor(Color(1.0f, 1.0f, 1.0f));
-
-    LambertMaterial* leftWall = new LambertMaterial();
-    leftWall->setDiffuseColor(Color(0.63f, 0.065f, 0.05f));
-
-    LambertMaterial* rightWall = new LambertMaterial();
-    rightWall->setDiffuseColor(Color(0.161f, 0.133f, 0.427f));
-
-    LambertMaterial* otherWalls = new LambertMaterial();
-    otherWalls->setDiffuseColor(Color(0.725f, 0.71f, 0.68f));
-
-    AshikhminMaterial* spRough = new AshikhminMaterial;
-    spRough->setDiffuseLevel(0.0f);
-    spRough->setSpecularLevel(1.0f);
-    spRough->setSpecularColor(Color(0.95f,0.7f,0.3f));
-    spRough->setRoughness(100000.0f, 100000.0f);
-
-    PlasticMaterial* plastic = new PlasticMaterial();
-    plastic->setDiffuseColor(Color(200.f / 255, 0.02f, 0.0f));
-    plastic->setN(1.7f);
-    plastic->setRoughness(0.2f);
+//    scene->setSky(new UniformSky(Color(0.1f, 0.1f, 0.1f)));
+    scene->setSky(new SphereSky(config->sceneResourcesDir() + "/Textures/sphereMap_joshua.jpg"));
 
     AssimpLoader loader;
     QList<Instance*> meshes;
-    loader.loadFile(config->sceneResourcesDir() + "Models/CornellBox/CornellBox-Sphere.obj", meshes);
+    QList<Light*> lights;
+    loader.loadFile(config->sceneResourcesDir() + "Models/Bottles/Bottles.dae", meshes, lights, camera);
+    for (int i = 0; i < lights.size(); ++i) {
+        Light* lgt = lights[i];
+        scene->addNode(lgt);
+        if (i == 0) {
+            lgt->setIntensity(250000.0f);
+        }
+    }
     QTime time;
     time.restart();
-
-    int idx = 0;
-    for (Instance* mesh : meshes) {
-        if (idx != 7) {
+    QVector<Node*> tmp;
+    for (int i = 0; i < meshes.size(); ++i) {
+        Instance* mesh = meshes[i];
+        Mesh* toSet = mesh->object<Mesh>();
+        if (toSet->name().toLower().contains("light")) {
+            AreaLight* light = new AreaLight;
+            QVector<Triangle*> lightTris = toSet->triangles();
+            light->setTriangles(lightTris);
+            light->transform(mesh->matrix());
+            light->setBaseColor(Color::WHITE);
+            light->setIntensity(0.5f);
+            light->setGeneratePhotons(false);
+            scene->addNode(light);
+        } else {
+//            toSet->smooth();
+            toSet->generateTextureTangents();
             BoxTreeNode* tree = new BoxTreeNode;
-            mesh->object<Mesh>()->setMaterial(otherWalls);
             tree->construct(mesh->object<Mesh>());
-            scene->addNode(tree);
+            Instance* treeInst = new Instance(tree);
+            treeInst->setMatrix(mesh->matrix());
+            tmp << treeInst;
         }
-        ++idx;
     }
-    meshes.at(0)->object<Mesh>()->setMaterial(metal);
-    meshes.at(1)->object<Mesh>()->setMaterial(trans);
-    meshes.at(5)->object<Mesh>()->setMaterial(rightWall);
-    meshes.at(6)->object<Mesh>()->setMaterial(leftWall);
-    logger->writeInfo(QString("Cornell Box Tree Construction : %1 ms").arg(QString::number(time.elapsed())));
-
-//    PointLight* lgt = new PointLight;
-//    lgt->setBaseColor(Color(1.0f, 1.0f, 1.0f));
-//    lgt->setIntensity(1.0f);
-//    lgt->setPosition(QVector3D(0.0f, 1.45f, 0.0f));
-//    scene->addNode(lgt);
-
-    ParallelogramLight* lgt = new ParallelogramLight();
-    lgt->setBaseColor(Color(1.0f, 1.0f, 1.0f));
-    lgt->setIntensity(0.8f / 1.5f);
-    lgt->set(QVector3D(-0.24f, 1.58f, -0.22f), QVector3D(0.47f, 0.0f, 0.0f), QVector3D(0.0f, 0.0f, 0.38f));
-    scene->addNode(lgt);
+    BoxTreeNode* tree = new BoxTreeNode;
+    tree->construct(tmp);
+    Instance* all = new Instance(tree);
+    QMatrix4x4 mtx;
+    all->setMatrix(mtx);
+    scene->addNode(all);
+    logger->writeInfo(QString("Scene Construction : %1 ms").arg(QString::number(time.elapsed())));
 
     renderer->setScene(scene);
     renderer->setCamera(camera);
@@ -204,34 +182,33 @@ void SceneGenerator::_loadProject1_Cubes(Renderer *renderer)
 
     LambertMaterial* cubeMat = new LambertMaterial;
     cubeMat->setDiffuseColor(Color(0.6f, 0.6f, 0.6f));
-//    cubeMat->setNormalMap(new ImageTexture(config->sceneResourcesDir() + "Textures/halflife.jpg"));
+    cubeMat->setNormalMap(new ImageTexture(config->sceneResourcesDir() + "Textures/halflife.jpg"));
 
     LambertMaterial* groundMat = new LambertMaterial;
     groundMat->setDiffuseColor(Color(0.3f, 0.3f, 0.3f));
-//    groundMat->setNormalMap(new ImageTexture(config->sceneResourcesDir() + "Models/Gibson LesPaul/Textures/Switch Normal.jpg"));
+    groundMat->setNormalMap(new ImageTexture(config->sceneResourcesDir() + "Textures/halflife.jpg"));
     Box* box1 = new Box();
     box1->set(5.0f, 0.1f, 5.0f);
     box1->setMaterial(groundMat);
-//    box1->setAlphaMap(new ImageTexture(config->sceneResourcesDir() + "/Textures/stripes.png"));
     scene->addNode(box1);
 
-    Box* box2 = new Box();
-    box2->set(1.0f, 1.0f, 1.0f);
-    box2->generateTextureTangents();
-    box2->setMaterial(cubeMat);
+//    Box* box2 = new Box();
+//    box2->set(1.0f, 1.0f, 1.0f);
+//    box2->generateTextureTangents();
+//    box2->setMaterial(cubeMat);
 
-    Instance* inst1 = new Instance(box2);
-    QMatrix4x4 mtx;
-    mtx.rotate(qRadiansToDegrees(0.5f), 1.0f, 0.0f, 0.0f);
-    mtx.setColumn(3, QVector3D(0.0f, 1.0f, 0.0f));
-    inst1->setMatrix(mtx);
+//    Instance* inst1 = new Instance(box2);
+//    QMatrix4x4 mtx;
+//    mtx.rotate(qRadiansToDegrees(0.5f), 1.0f, 0.0f, 0.0f);
+//    mtx.setColumn(3, QVector3D(0.0f, 1.0f, 0.0f));
+//    inst1->setMatrix(mtx);
 //    scene->addNode(inst1);
 
-    Instance* inst2 = new Instance(box2);
-    mtx.setToIdentity();
-    mtx.rotate(qRadiansToDegrees(1.0f), 0.0f, 1.0f, 0.0f);
-    mtx.setColumn(3, QVector3D(-1.0f, 0.0f, 1.0f));
-    inst2->setMatrix(mtx);
+//    Instance* inst2 = new Instance(box2);
+//    mtx.setToIdentity();
+//    mtx.rotate(qRadiansToDegrees(1.0f), 0.0f, 1.0f, 0.0f);
+//    mtx.setColumn(3, QVector3D(-1.0f, 0.0f, 1.0f));
+//    inst2->setMatrix(mtx);
 //    scene->addNode(inst2);
 
     DirectionalLight* sunlgt = new DirectionalLight;
@@ -731,64 +708,78 @@ void SceneGenerator::_loadTeapot(Renderer *renderer)
 
 void SceneGenerator::_loadCornellBox(Renderer *renderer)
 {
-    Config::Epsilon = 0.00001f;
+    Config::Epsilon = 0.0001f;
+    config->setPhotonMappingMaximumSearchRadius(0.0001f);
 
     Camera* camera = renderer->camera();
     camera->lookAt(QVector3D(0.0f, 0.75f, 3.0f), QVector3D(0.0f, 0.75f, 0.0f), config->yAxis());
-    camera->set(40.0f, 1.33f);
+    camera->set(40.0f, 800.0f / 600.0f);
     renderer->setImageSize(800, 600);
 
     Scene* scene = new Scene;
-    scene->setSky(new UniformSky(Color(0.2f, 0.2f, 0.2f)));
+    scene->setSky(new UniformSky(Color(0.0f, 0.0f, 0.0f)));
+
+    LambertMaterial* lWall = new LambertMaterial;
+    lWall->setDiffuseColor(Color(0.63f, 0.065f, 0.05f));
+
+    LambertMaterial* rWall = new LambertMaterial;
+    rWall->setDiffuseColor(Color(0.161f, 0.133f, 0.427f));
+
+    LambertMaterial* oWall = new LambertMaterial;
+    oWall->setDiffuseColor(Color(0.725f, 0.71f, 0.68f));
 
     MetalMaterial* metal = new MetalMaterial();
-    metal->setN(0.37f);
-    metal->setK(2.82f);
-    metal->setTransmittedColor(Color(1.0f, 0.843f, 0.0f));
+    metal->setN(0.177f);
+    metal->setK(3.638f);
+    metal->setTransmittedColor(Color(1.0f, 1.0f, 1.0f));
     metal->setRoughness(0.0f);
 
     DielectricMaterial* trans = new DielectricMaterial();
-    trans->setN(1.333f);
+    trans->setN(1.45f);
+    trans->setAbsorptionColor(Color::GREEN);
+    trans->setAbsorptionCoef(0.0f);
     trans->setRoughness(0.0f);
-
-    LambertMaterial* lamb = new LambertMaterial();
-    lamb->setDiffuseColor(Color::WHITE);
-
-    LambertMaterial* sp1 = new LambertMaterial();
-    sp1->setDiffuseColor(Color(0.0f, 0.0f, 1.0f));
-
-    LambertMaterial* sp2 = new LambertMaterial();
-    sp2->setDiffuseColor(Color(1.0f, 1.0f, 1.0f));
-
-    AshikhminMaterial* spRough = new AshikhminMaterial;
-    spRough->setDiffuseLevel(0.0f);
-    spRough->setSpecularLevel(1.0f);
-    spRough->setSpecularColor(Color(0.95f,0.7f,0.3f));
-    spRough->setRoughness(100000.0f, 100000.0f);
-
-    PlasticMaterial* plastic = new PlasticMaterial();
-    plastic->setDiffuseColor(Color(200.f / 255, 0.02f, 0.0f));
-    plastic->setN(1.7f);
-    plastic->setRoughness(0.2f);
 
     AssimpLoader loader;
     QList<Instance*> meshes;
     loader.loadFile(config->sceneResourcesDir() + "Models/CornellBox/CornellBox-Sphere.obj", meshes);
     QTime time;
     time.restart();
-    meshes.at(0)->setMaterial(spRough);
-    meshes.at(1)->setMaterial(trans);
 
+    int idx = 0;
     for (Instance* mesh : meshes) {
-        BoxTreeNode* tree = new BoxTreeNode;
-        tree->construct(mesh->object<Mesh>());
-        scene->addNode(tree);
+//        if (idx != 5 && idx != 6 && idx != 3) {
+            BoxTreeNode* tree = new BoxTreeNode;
+            tree->construct(mesh->object<Mesh>());
+            mesh->object<Mesh>()->setMaterial(oWall);
+            scene->addNode(tree);
+//        }
+        ++idx;
     }
+    meshes.at(0)->object<Mesh>()->setMaterial(metal);
+    meshes.at(1)->object<Mesh>()->setMaterial(trans);
+    meshes.at(5)->object<Mesh>()->setMaterial(rWall);
+    meshes.at(6)->object<Mesh>()->setMaterial(lWall);
     logger->writeInfo(QString("Cornell Box Tree Construction : %1 ms").arg(QString::number(time.elapsed())));
+
+    //    PointLight* lgt = new PointLight;
+    //    lgt->setBaseColor(Color(1.0f, 1.0f, 1.0f));
+    //    lgt->setIntensity(0.7f);
+    //    lgt->setPosition(QVector3D(0.0f, 1.0f, 0.0f));
+    //    scene->addNode(lgt);
+
+//    SpotLight* lgt = new SpotLight;
+//    lgt->setBaseColor(Color(1.0f, 1.0f, 1.0f));
+//    lgt->setIntensity(2.0f);
+//    lgt->setPosition(QVector3D(0.0f, 1.0f, 0.0f));
+//    lgt->setOuterAngle(90);
+//    lgt->setInnerAngle(75);
+//    lgt->setDirection(QVector3D(0.0f, -1.0f, 0.0f));
+//    scene->addNode(lgt);
 
     ParallelogramLight* lgt = new ParallelogramLight();
     lgt->setBaseColor(Color(1.0f, 1.0f, 1.0f));
-    lgt->setIntensity(0.4f);
+    lgt->setIntensity(10.0f);
     lgt->set(QVector3D(-0.24f, 1.58f, -0.22f), QVector3D(0.47f, 0.0f, 0.0f), QVector3D(0.0f, 0.0f, 0.38f));
     scene->addNode(lgt);
 
@@ -798,7 +789,8 @@ void SceneGenerator::_loadCornellBox(Renderer *renderer)
 
 void SceneGenerator::_loadCornellDragon(Renderer *renderer)
 {
-    Config::Epsilon = 0.001f;
+    Config::Epsilon = 0.0001f;
+    config->setPhotonMappingMaximumSearchRadius(0.0001f);
 
     Camera* camera = renderer->camera();
     camera->lookAt(QVector3D(0.0f, 0.75, 3.0f), QVector3D(0.0f, 0.75f, 0.0f), config->yAxis());
@@ -814,7 +806,7 @@ void SceneGenerator::_loadCornellDragon(Renderer *renderer)
     metal->setTransmittedColor(Color(1.0f, 0.843f, 0.0f));
 
     DielectricMaterial* trans = new DielectricMaterial();
-    trans->setN(1.333f);
+    trans->setN(2.0f);
     trans->setRoughness(0.0f);
     trans->setAbsorptionCoef(10.0f);
     trans->setAbsorptionColor(Color(0.0f, 0.8f, 0.0f));
@@ -848,13 +840,13 @@ void SceneGenerator::_loadCornellDragon(Renderer *renderer)
     inst->setMaterial(trans);
     QMatrix4x4 mtx;
     mtx.scale(7);
-    mtx.setColumn(3, QVector4D(0.0f, -0.37f, 0.0f, 1.0f));
+    mtx.setColumn(3, QVector4D(0.0f, -0.25f, 0.0f, 1.0f));
     inst->setMatrix(mtx);
     scene->addNode(inst);
 
     ParallelogramLight* lgt = new ParallelogramLight();
     lgt->setBaseColor(Color(1.0f, 1.0f, 1.0f));
-    lgt->setIntensity(0.35f);
+    lgt->setIntensity(15.0f);
     lgt->set(QVector3D(-0.24f, 1.58f, -0.22f), QVector3D(0.47f, 0, 0.0f), QVector3D(0.0f, 0, 0.38f));
     scene->addNode(lgt);
 
@@ -1411,6 +1403,64 @@ void SceneGenerator::_loadMusic(Renderer *renderer)
     QMatrix4x4 mtx;
     guitar->setMatrix(mtx);
     scene->addNode(guitar);
+    logger->writeInfo(QString("Scene Construction : %1 ms").arg(QString::number(time.elapsed())));
+
+    renderer->setScene(scene);
+    renderer->setCamera(camera);
+}
+
+void SceneGenerator::_loadRoom(Renderer *renderer)
+{
+    Config::Epsilon = 0.1f;
+    config->setPhotonMappingMaximumSearchRadius(100.0f);
+
+    Camera* camera = renderer->camera();
+    camera->set(40.0f, 1.777f);
+    renderer->setImageSize(800, 450);
+
+    Scene* scene = new Scene;
+    scene->setSky(new UniformSky(Color(0.0f, 0.0f, 0.0f)));
+//    scene->setSky(new SphereSky(config->sceneResourcesDir() + "/Textures/sphereMap_joshua.jpg"));
+
+    AssimpLoader loader;
+    QList<Instance*> meshes;
+    QList<Light*> lights;
+    loader.loadFile(config->sceneResourcesDir() + "Models/Appartment/Appartment.dae", meshes, lights, camera);
+    for (Light* lgt : lights) {
+        lgt->setIntensity(2.0f);
+        scene->addNode(lgt);
+    }
+    QTime time;
+    time.restart();
+    QVector<Node*> tmp;
+    for (int i = 0; i < meshes.size(); ++i) {
+        Instance* mesh = meshes[i];
+        Mesh* toSet = mesh->object<Mesh>();
+        toSet->smooth();
+        toSet->generateTextureTangents();
+
+        if ((i <= 35 || i >= 43)) {
+            BoxTreeNode* tree = new BoxTreeNode;
+            tree->construct(mesh->object<Mesh>());
+            Instance* treeInst = new Instance(tree);
+            treeInst->setMatrix(mesh->matrix());
+            tmp << treeInst;
+        } else {
+//            AreaLight* light = new AreaLight;
+//            QVector<Triangle*> lightTris = toSet->triangles();
+//            light->setTriangles(lightTris);
+//            light->transform(mesh->matrix());
+//            light->setBaseColor(Color::WHITE);
+//            light->setIntensity(50.0f);
+//            scene->addNode(light);
+        }
+    }
+    BoxTreeNode* tree = new BoxTreeNode;
+    tree->construct(tmp);
+    Instance* all = new Instance(tree);
+    QMatrix4x4 mtx;
+    all->setMatrix(mtx);
+    scene->addNode(all);
     logger->writeInfo(QString("Scene Construction : %1 ms").arg(QString::number(time.elapsed())));
 
     renderer->setScene(scene);

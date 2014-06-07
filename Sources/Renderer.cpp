@@ -13,17 +13,13 @@
 #include "Scene.h"
 #include "Intersection.h"
 #include "Node.h"
-#include "Light.h"
-#include "Utils.h"
 #include "Config.h"
 #include "Material.h"
-#include "Sky.h"
-#include "KDTreeNode.h"
-#include "Photon.h"
-#include "PhotonMap.h"
+#include "Logger.h"
+#include "Integrator.h"
 
 Renderer::Renderer(QWidget *parent)
-    : QWidget(parent), _camera(0), _scene(0), _raytracerThread(0), _globalPhotonMap(0)
+    : QWidget(parent), _camera(0), _scene(0), _raytracerThread(0), _integrator(0)
 {
     setImageSize(config->defaultImageWidth(), config->defaultImageHeight());
     QTimer* updator = new QTimer(this);
@@ -73,6 +69,16 @@ void Renderer::setScene(Scene *scene)
     _scene = scene;
 }
 
+Integrator *Renderer::integrator() const
+{
+    return _integrator;
+}
+
+void Renderer::setIntegrator(Integrator *integrator)
+{
+    _integrator = integrator;
+}
+
 void Renderer::render()
 {
     if (!_camera || !_scene) {
@@ -83,7 +89,7 @@ void Renderer::render()
     _stopThread = false;
     _isRendering = true;
     _isPaused = false;
-    _raytracerThread = new std::thread(&Renderer::_raytrace, this);
+    _raytracerThread = new std::thread(&Renderer::_computeImage, this);
 }
 
 void Renderer::play()
@@ -163,6 +169,9 @@ void Renderer::paintEvent(QPaintEvent *)
 
 void Renderer::mouseReleaseEvent(QMouseEvent *e)
 {
+    if (!_integrator) {
+        return ;
+    }
     float winRatio = float(width()) / height();
     float imgRatio = float(_image.width()) / _image.height();
 
@@ -181,9 +190,9 @@ void Renderer::mouseReleaseEvent(QMouseEvent *e)
         Intersection    hit;
         Ray             ray;
 
-        ray.depth = config->pathDepth();
+        ray.depth = 0;
         _camera->notSampledRay(float(e->pos().x() - rect.left() + 0.5f) / rect.width(), -float(e->pos().y() - rect.top() + 0.5f) / rect.height(), ray);
-        _throwRay(ray, hit);
+        _integrator->compute(ray, hit);
         emit clicked(hit);
     }
 }
@@ -197,8 +206,11 @@ void Renderer::_onStop()
     _isRendering = false;
 }
 
-void Renderer::_raytrace()
+void Renderer::_computeImage()
 {
+    if (!_integrator) {
+        return ;
+    }
     int s = qSqrt(config->renderingTaskNumber());
 
     QSize imageSize = _image.size();
@@ -218,27 +230,42 @@ void Renderer::_raytrace()
         }
     }
 
+    _imageColors.resize(imageSize.width() * imageSize.height());
+    _imageColors.fill(Color::BLACK);
+
     _elapsedTime = 0;
     _sampleNumber = 0;
     _renderingTime.restart();
-    _imageColors.resize(imageSize.width() * imageSize.height());
-    _imageColors.fill(Color::BLACK);
-    if (config->usePhotonMapping()) {
-        _globalPhotonMap = new PhotonMap(_scene);
-        _globalPhotonMap->build(PhotonMap::Global);
+
+    _integrator->preprocess(_scene, _camera);
+//    if (config->usePhotonMapping()) {
+//        QTime time;
+//        time.restart();
+//        logger->showMessage("Building Global Photon Map...");
+//        _globalPhotonMap = new PhotonMap(_scene);
+//        _globalPhotonMap->build(PhotonMap::Global);
+//        logger->writeSuccess(QString("Global Photon Map built : %1 ms").arg(QString::number(time.elapsed())));
+//        time.restart();
+//        logger->showMessage("Building Caustic Photon Map...");
 //        _causticPhotonMap = new PhotonMap(_scene);
 //        _causticPhotonMap->build(PhotonMap::Caustic);
-    }
+//        logger->clearMessage();
+//        logger->writeSuccess(QString("Global Caustic Map built : %1 ms").arg(QString::number(time.elapsed())));
+//    }
+
+    _renderingTime.restart();
 
     emit renderingStarted();
 
+    QTime saveTime;
+    saveTime.restart();
     while (_stopThread == false) {
         _renderingTasks = tasks;
 
         std::random_shuffle(_renderingTasks.begin(), _renderingTasks.end());
 
         for (int i = 0; i < config->threadNumber(); ++i) {
-            _computingThreads.append(new std::thread(&Renderer::_raytraceSections, this));
+            _computingThreads.append(new std::thread(&Renderer::_computeSections, this));
         }
 
         for (std::thread* computingThread : _computingThreads) {
@@ -249,6 +276,10 @@ void Renderer::_raytrace()
         _renderingTasks.clear();
         ++_sampleNumber;
         _elapsedTime += _renderingTime.elapsed();
+        if (saveTime.elapsed() > 5000) {
+            saveTime.restart();
+            _image.save(config->outputDir() + "/last.bmp");
+        }
         _pauseMutex.lock();
         _pauseMutex.unlock();
         _renderingTime.restart();
@@ -258,13 +289,12 @@ void Renderer::_raytrace()
     _isRendering = false;
 }
 
-void Renderer::_raytraceSections()
+void Renderer::_computeSections()
 {
     QSize imageSize = _image.size();
     Ray ray;
 
     ray.type = Ray::Primary;
-
     while (1) {
         _renderingTasksMutex.lock();
         if (_renderingTasks.isEmpty()) {
@@ -308,7 +338,7 @@ void Renderer::_raytraceSections()
 
                         _camera->ray(vx, -vy, ray);
                         ray.time = float(qrand()) / RAND_MAX;
-                        _throwRay(ray, hit);
+                        _integrator->compute(ray, hit);
                         pixel.AddScaled(hit.shade, 1.0f / (resolution * resolution));
                     }
                 }
@@ -318,40 +348,25 @@ void Renderer::_raytraceSections()
     }
 }
 
-void Renderer::_throwRay(const Ray &ray, Intersection &hit)
-{
-    hit.shade = Color::BLACK;
-    if (_scene->intersect(ray, hit)) {
-        if (hit.light != 0) {
-            hit.light->intersectionColor(hit.shade);
-            return ;
-        }
-        if (QVector3D::dotProduct(hit.normal, ray.direction) > 0) {
-            hit.normal *= -1;
-            hit.u *= -1;
-            hit.v *= -1;
-        }
-        if (hit.material) {
-            hit.material->applyTransformation(hit);
-        }
-        if (config->usePhotonMapping() == false && hit.material && ray.depth < config->pathDepth()) {
-            int sampleNumber = config->pathSampleNumber();
-            for (int s = 0; s < sampleNumber; ++s) {
-                Ray newRay;
-                Color c;
-
-                newRay.type = Ray::Reflected;
-                if (hit.material->sampleRay(ray, hit, newRay, c)) {
-                    newRay.depth = ray.depth + 1;
-                    Intersection newHit;
-                    newRay.time = ray.time;
-                    _throwRay(newRay, newHit);
-                    newHit.shade.Multiply(c);
-                    newHit.shade.Scale(1.0f / sampleNumber);
-                    hit.shade.Add(newHit.shade);
-                }
-            }
-        }
+//void Renderer::_pathTrace(const Ray &ray, Intersection &hit)
+//{
+//    hit.shade = Color::BLACK;
+//    if (_scene->intersect(ray, hit)) {
+//        if (hit.light != 0) {
+//            if (ray.type != Ray::Diffused) {
+//                hit.light->intersectionColor(hit.shade);
+//            }
+//            return ;
+//        }
+//        if (hit.material == 0) {
+//            return ;
+//        }
+//        if (QVector3D::dotProduct(hit.normal, ray.direction) > 0) {
+//            hit.normal *= -1;
+//            hit.u *= -1;
+//            hit.v *= -1;
+//        }
+//        hit.material->applyTransformation(hit);
 //        for (Light* light : _scene->lights()) {
 //            int sampleNumber = light->sampleNumber();
 //            for (int i = 0; i < sampleNumber; ++i) {
@@ -362,37 +377,125 @@ void Renderer::_throwRay(const Ray &ray, Intersection &hit)
 //                float cosTheta = QVector3D::dotProduct(toLight, hit.normal);
 //                if (cosTheta >= Config::Epsilon && bright >= Config::Epsilon) {
 //                    if (!config->shadowEnabled() || !_isShaded(hit.position, toLight, lightPos, ray.time)) {
-//                        Color materialColor = Color::WHITE;
-//                        if (hit.material) {
-//                            hit.material->computeReflectance(materialColor, toLight, ray, hit);
-//                        }
+//                        Color materialColor = Color::BLACK;
+//                        hit.material->computeReflectance(materialColor, toLight, ray, hit);
+//                        materialColor.Scale(cosTheta);
 //                        color.Multiply(materialColor);
 //                        hit.shade.AddScaled(color, bright);
 //                    }
 //                }
 //            }
 //        }
-        if (config->usePhotonMapping()) {
-            if (_globalPhotonMap) {
-                _globalPhotonMap->computeColor(hit.position, hit.shade, config->numberNearestPhoton(), config->photonMaximumRadius());
-            }
-            if (_causticPhotonMap) {
-                _causticPhotonMap->computeColor(hit.position, hit.shade, config->numberNearestPhoton(), config->photonMaximumRadius());
-            }
-        }
-    } else {
-        _scene->sky()->evaluate(ray.direction, hit.shade);
-    }
-}
+//        if (ray.depth < config->pathDepth()) {
+//            int sampleNumber = config->pathSampleNumber();
+//            for (int s = 0; s < sampleNumber; ++s) {
+//                Ray newRay;
+//                Color c;
 
-bool Renderer::_isShaded(QVector3D const& hitPosition, QVector3D const& toLight, QVector3D const& lightPos, float time) {
-    Intersection hit;
-    Ray shadowRay(hitPosition, toLight, Ray::Shadow);
+//                newRay.type = Ray::Reflected;
+//                if (hit.material->sampleRay(ray, hit, newRay, c)) {
+//                    newRay.depth = ray.depth + 1;
+//                    newRay.time = ray.time;
+//                    Intersection newHit;
+//                    _pathTrace(newRay, newHit);
+//                    newHit.shade.Multiply(c);
+//                    newHit.shade.Scale(1.0f / sampleNumber);
+//                    hit.shade.Add(newHit.shade);
+//                }
+//            }
+//        }
+//    } else {
+//        _scene->sky()->evaluate(ray.direction, hit.shade);
+//    }
+//}
 
-    shadowRay.time = time;
-    hit.hitDistance = hitPosition.distanceToPoint(lightPos);
-    return _scene->intersect(shadowRay, hit);
-}
+//void Renderer::_rayTrace(const Ray &ray, Intersection &hit, bool searchDiffuse)
+//{
+//    hit.shade = Color::BLACK;
+//    if (_scene->intersect(ray, hit)) {
+//        if (hit.light != 0 && searchDiffuse == false) {
+//            hit.light->intersectionColor(hit.shade);
+//            return ;
+//        }
+//        if (!hit.material) {
+//            return ;
+//        }
+//        if (QVector3D::dotProduct(hit.normal, ray.direction) > 0) {
+//            hit.normal *= -1;
+//            hit.u *= -1;
+//            hit.v *= -1;
+//        }
+//        hit.material->applyTransformation(hit);
+
+//        Ray newRay;
+//        Color c;
+
+//        bool sample = hit.material->sampleRay(ray, hit, newRay, c);
+
+//        if (ray.depth < config->pathDepth()) {
+//            if (sample && (searchDiffuse == false || newRay.type != Ray::Diffused)) {
+//                newRay.depth = ray.depth + 1;
+//                Intersection newHit;
+//                newRay.time = ray.time;
+//                _rayTrace(newRay, newHit, searchDiffuse || newRay.type == Ray::Diffused);
+//                newHit.shade.Multiply(c);
+//                hit.shade.Add(newHit.shade);
+//            }
+//        }
+//        if (searchDiffuse == false) {
+//            for (Light* light : _scene->lights()) {
+//                int sampleNumber = light->sampleNumber();
+//                for (int i = 0; i < sampleNumber; ++i) {
+//                    Color color;
+//                    QVector3D toLight;
+//                    QVector3D lightPos;
+//                    float bright = light->illuminate(hit.position, color, toLight, lightPos) / sampleNumber;
+//                    float cosTheta = QVector3D::dotProduct(toLight, hit.normal);
+//                    if (cosTheta >= Config::Epsilon && bright >= Config::Epsilon) {
+//                        if (!config->shadowEnabled() || !_isShaded(hit.position, toLight, lightPos, ray.time)) {
+//                            Color materialColor = Color::WHITE;
+//                            hit.material->computeReflectance(materialColor, toLight, ray, hit);
+//                            materialColor.Scale(cosTheta);
+//                            color.Multiply(materialColor);
+//                            hit.shade.AddScaled(color, bright);
+//                        }
+//                    }
+//                }
+//            }
+//            if (_causticPhotonMap && newRay.type == Ray::Diffused) {
+//                Color causticColor;
+//                _causticPhotonMap->computeColor(ray, hit, causticColor, config->numberNearestPhoton(), config->photonMaximumRadius());
+//                hit.shade.Add(causticColor);
+//            }
+//        } else if (newRay.type == Ray::Diffused && _globalPhotonMap) {
+//            Color globalColor;
+//            _globalPhotonMap->computeColor(ray, hit, globalColor, config->numberNearestPhoton(), config->photonMaximumRadius());
+//            hit.shade.Add(globalColor);
+//        }
+
+////        if (_globalPhotonMap) {
+////            Color globalColor;
+////            _globalPhotonMap->computeColor(ray, hit, globalColor, config->numberNearestPhoton(), config->photonMaximumRadius());
+////            hit.shade.Add(globalColor);
+////        }
+////        if (_causticPhotonMap) {
+////            Color causticColor;
+////            _causticPhotonMap->computeColor(ray, hit, causticColor, config->numberNearestPhoton(), config->photonMaximumRadius());
+////            hit.shade.Add(causticColor);
+////        }
+//    } else {
+//        _scene->sky()->evaluate(ray.direction, hit.shade);
+//    }
+//}
+
+//bool Renderer::_isShaded(QVector3D const& hitPosition, QVector3D const& toLight, QVector3D const& lightPos, float time) {
+//    Intersection hit;
+//    Ray shadowRay(hitPosition, toLight, Ray::Shadow);
+
+//    shadowRay.time = time;
+//    hit.hitDistance = hitPosition.distanceToPoint(lightPos);
+//    return _scene->intersect(shadowRay, hit);
+//}
 
 void Renderer::_setPixel(int x, int y, const Color &color)
 {

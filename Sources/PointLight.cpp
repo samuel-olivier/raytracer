@@ -1,5 +1,7 @@
 #include "PointLight.h"
 
+#include <QtMath>
+
 PointLight::PointLight()
 {
 }
@@ -37,7 +39,7 @@ void PointLight::sampleRay(Ray &newRay, float &intensity, Color &color) const
     } while (newRay.direction.lengthSquared() > 1);
     newRay.origin = _position;
     newRay.direction.normalize();
-    intensity = this->intensity();
+    intensity = 2.0f * M_PI * this->intensity();
     color = baseColor();
 }
 

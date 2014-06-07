@@ -30,9 +30,11 @@ public slots:
 
 private slots:
     void    onClick(Intersection hit);
+    void    onIntegratorChanged();
 
 private:
     void    _loadScene(QString const& scene);
+    void    _launchRenderer();
 
     void    _loadConfig();
     void    _setConfig();

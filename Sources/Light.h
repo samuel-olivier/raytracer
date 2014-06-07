@@ -26,9 +26,12 @@ public:
 
     virtual int sampleNumber() const = 0;
 
+    bool    generatePhotons() const;
+    void    setGeneratePhotons(bool generatePhotons);
 private:
     Color   _baseColor;
     float   _intensity;
+    bool    _generatePhotons;
 };
 
 #endif // LIGHT_H

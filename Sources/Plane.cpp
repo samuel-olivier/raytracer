@@ -91,6 +91,7 @@ bool Plane::intersect(const Ray &ray, Intersection &hit)
                                  QVector3D::dotProduct(hit.position - _position, tp));
         hit.u = _u;
         hit.v = _v;
+        hit.light = 0;
         return true;
     }
     return false;

@@ -13,6 +13,7 @@ class Instance;
 class Material;
 class Camera;
 class Light;
+class Texture;
 
 class AssimpLoader
 {
@@ -27,7 +28,7 @@ private:
     void    _loadAssimpNode(const aiScene* scene, aiNode* assimpNode, int& numTriangles, QList<Instance *> &meshes, QList<Light *> &lights, Camera* camera, QMatrix4x4 const& parent = QMatrix4x4());
 
     Assimp::Importer*   _importer;
-    QVector<Material*>  _materials;
+    QVector<QPair<Texture*, Material*>>  _materials;
     QString             _baseDir;
 };
 

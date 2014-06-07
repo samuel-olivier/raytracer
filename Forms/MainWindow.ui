@@ -6,20 +6,83 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1115</width>
+    <width>1321</width>
     <height>971</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>UCSD - CSE 168</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QDockWidget&gt;QWidget, #centralWidget {
+	background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+							stop: 0 #EAEAEA,
+							stop: 0.5 #FCFCFC,
+							stop: 1.0 #EAEAEA);
+}
+
+QDockWidget&gt;QWidget {
+	border: 1px #A0A0A0 solid;
+}
+
+QDockWidget::title {
+	border: 1px #A0A0A0 solid;
+	border-radius: 5px;
+	background-color: lightgray;
+ }
+
+QMainWindow::separator {
+	background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+							stop: 0 #DADADA,
+							stop: 0.5 #ECECEC,
+							stop: 1.0 #DADADA);
+	width: 2px;
+	height: 2px;
+}
+
+QGroupBox {
+	border-radius: 5px;
+	border: 1px solid #A0A0A0;
+	margin-top: 1ex;
+}
+
+QGroupBox::title {
+	subcontrol-origin: margin;
+	subcontrol-position: top center;
+	padding: 0 2px;
+	margin-top: -6px;
+}
+
+QTextEdit {
+	border-radius: 5px;
+	border: 3px #A0A0A0 solid;
+	background-color: #FCFCFC;
+}</string>
+  </property>
+  <property name="documentMode">
+   <bool>false</bool>
   </property>
   <widget class="QWidget" name="centralWidget">
+   <property name="styleSheet">
+    <string notr="true"/>
+   </property>
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
      <widget class="Renderer" name="renderer" native="true">
       <property name="focusPolicy">
        <enum>Qt::StrongFocus</enum>
       </property>
+      <zorder>photonMappingSearchRadius</zorder>
+      <zorder>line</zorder>
+      <zorder>photonMappingRayDepth</zorder>
+      <zorder>label_21</zorder>
+      <zorder>photonMappingMapDepth</zorder>
+      <zorder>photonMappingPhotonNumber</zorder>
+      <zorder>photonMappingNearestPhotons</zorder>
+      <zorder>label_20</zorder>
+      <zorder>label_22</zorder>
+      <zorder>label_19</zorder>
+      <zorder>label_11</zorder>
      </widget>
     </item>
    </layout>
@@ -38,11 +101,11 @@
    <addaction name="action_Stop"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
-  <widget class="QDockWidget" name="dockWidget">
+  <widget class="QDockWidget" name="dockLeft">
    <attribute name="dockWidgetArea">
     <number>1</number>
    </attribute>
-   <widget class="QWidget" name="dockWidgetContents">
+   <widget class="QWidget" name="dockLeftContent">
     <layout class="QVBoxLayout" name="verticalLayout_2">
      <item>
       <widget class="QGroupBox" name="groupBox">
@@ -91,47 +154,6 @@
           </property>
          </widget>
         </item>
-        <item row="6" column="0">
-         <widget class="QLabel" name="label_6">
-          <property name="text">
-           <string>Path Depth</string>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="0">
-         <widget class="QLabel" name="label_4">
-          <property name="text">
-           <string>Antialiasing Resolution</string>
-          </property>
-         </widget>
-        </item>
-        <item row="6" column="1">
-         <widget class="QSpinBox" name="pathDepth">
-          <property name="minimum">
-           <number>0</number>
-          </property>
-          <property name="maximum">
-           <number>50</number>
-          </property>
-         </widget>
-        </item>
-        <item row="7" column="0">
-         <widget class="QLabel" name="label_11">
-          <property name="text">
-           <string>Path Sample Number</string>
-          </property>
-         </widget>
-        </item>
-        <item row="7" column="1">
-         <widget class="QSpinBox" name="pathSampleNumber">
-          <property name="minimum">
-           <number>1</number>
-          </property>
-          <property name="maximum">
-           <number>1000</number>
-          </property>
-         </widget>
-        </item>
         <item row="3" column="1">
          <widget class="QSpinBox" name="lightSampleNumber">
           <property name="minimum">
@@ -139,6 +161,13 @@
           </property>
           <property name="maximum">
            <number>400</number>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="0">
+         <widget class="QLabel" name="label_4">
+          <property name="text">
+           <string>Antialiasing Resolution</string>
           </property>
          </widget>
         </item>
@@ -192,6 +221,20 @@
           </property>
          </widget>
         </item>
+        <item row="6" column="0">
+         <widget class="QLabel" name="label_17">
+          <property name="text">
+           <string>Image Width</string>
+          </property>
+         </widget>
+        </item>
+        <item row="7" column="0">
+         <widget class="QLabel" name="label_18">
+          <property name="text">
+           <string>Image Height</string>
+          </property>
+         </widget>
+        </item>
         <item row="1" column="0">
          <widget class="QLabel" name="label">
           <property name="text">
@@ -199,22 +242,8 @@
           </property>
          </widget>
         </item>
-        <item row="8" column="0">
-         <widget class="QLabel" name="label_17">
-          <property name="text">
-           <string>Image Width</string>
-          </property>
-         </widget>
-        </item>
-        <item row="9" column="0">
-         <widget class="QLabel" name="label_18">
-          <property name="text">
-           <string>Image Height</string>
-          </property>
-         </widget>
-        </item>
-        <item row="8" column="1">
-         <widget class="QSpinBox" name="imageWidth">
+        <item row="7" column="1">
+         <widget class="QSpinBox" name="imageHeight">
           <property name="minimum">
            <number>1</number>
           </property>
@@ -223,8 +252,8 @@
           </property>
          </widget>
         </item>
-        <item row="9" column="1">
-         <widget class="QSpinBox" name="imageHeight">
+        <item row="6" column="1">
+         <widget class="QSpinBox" name="imageWidth">
           <property name="minimum">
            <number>1</number>
           </property>
@@ -360,7 +389,35 @@
       </widget>
      </item>
      <item>
+      <spacer name="verticalSpacer">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>20</width>
+         <height>40</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QDockWidget" name="dockBottom">
+   <attribute name="dockWidgetArea">
+    <number>8</number>
+   </attribute>
+   <widget class="QWidget" name="dockBottomContent">
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
       <widget class="QGroupBox" name="groupBox_2">
+       <property name="minimumSize">
+        <size>
+         <width>221</width>
+         <height>0</height>
+        </size>
+       </property>
        <property name="title">
         <string>Info</string>
        </property>
@@ -411,7 +468,217 @@
       </widget>
      </item>
      <item>
-      <spacer name="verticalSpacer">
+      <widget class="Console" name="console">
+       <property name="styleSheet">
+        <string notr="true">this {
+	border-radius: 5px;
+	border: 1px #A0A0A0 solid;
+}</string>
+       </property>
+       <property name="readOnly">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QDockWidget" name="dockRight">
+   <property name="styleSheet">
+    <string notr="true"/>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="QWidget" name="dockRightContent">
+    <property name="styleSheet">
+     <string notr="true"/>
+    </property>
+    <layout class="QVBoxLayout" name="verticalLayout_3">
+     <item>
+      <widget class="QGroupBox" name="groupBox_4">
+       <property name="title">
+        <string>Integrator</string>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_4">
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <item>
+         <widget class="QWidget" name="widget" native="true">
+          <layout class="QVBoxLayout" name="verticalLayout_5">
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
+           <item>
+            <widget class="QComboBox" name="integrator">
+             <property name="minimumSize">
+              <size>
+               <width>185</width>
+               <height>0</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QWidget" name="pathtracing" native="true">
+          <layout class="QFormLayout" name="formLayout_3">
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
+           <item row="0" column="0">
+            <widget class="QLabel" name="label_6">
+             <property name="text">
+              <string>Path Depth</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QSpinBox" name="pathtracingPathDepth">
+             <property name="minimum">
+              <number>0</number>
+             </property>
+             <property name="maximum">
+              <number>50</number>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QWidget" name="photonMapping" native="true">
+          <layout class="QFormLayout" name="formLayout_4">
+           <property name="fieldGrowthPolicy">
+            <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
+           <item row="0" column="0">
+            <widget class="QLabel" name="label_11">
+             <property name="text">
+              <string>Map Depth</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QSpinBox" name="photonMappingMapDepth">
+             <property name="minimum">
+              <number>0</number>
+             </property>
+             <property name="maximum">
+              <number>100</number>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="label_20">
+             <property name="text">
+              <string>Photon Number</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QSpinBox" name="photonMappingPhotonNumber">
+             <property name="minimum">
+              <number>0</number>
+             </property>
+             <property name="maximum">
+              <number>1000000000</number>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0" colspan="2">
+            <widget class="Line" name="line">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0">
+            <widget class="QLabel" name="label_19">
+             <property name="text">
+              <string>Ray Depth</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="1">
+            <widget class="QSpinBox" name="photonMappingRayDepth">
+             <property name="minimum">
+              <number>0</number>
+             </property>
+             <property name="maximum">
+              <number>50</number>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="0">
+            <widget class="QLabel" name="label_22">
+             <property name="text">
+              <string>Nearest Photons</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="1">
+            <widget class="QSpinBox" name="photonMappingNearestPhotons">
+             <property name="minimum">
+              <number>0</number>
+             </property>
+             <property name="maximum">
+              <number>1000000</number>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="0">
+            <widget class="QLabel" name="label_21">
+             <property name="text">
+              <string>Search Radius</string>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="1">
+            <widget class="QDoubleSpinBox" name="photonMappingSearchRadius">
+             <property name="decimals">
+              <number>7</number>
+             </property>
+             <property name="minimum">
+              <double>0.000001000000000</double>
+             </property>
+             <property name="maximum">
+              <double>99999.000000000000000</double>
+             </property>
+             <property name="singleStep">
+              <double>0.000001000000000</double>
+             </property>
+             <property name="value">
+              <double>0.000001000000000</double>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <spacer name="verticalSpacer_2">
        <property name="orientation">
         <enum>Qt::Vertical</enum>
        </property>
@@ -422,22 +689,6 @@
         </size>
        </property>
       </spacer>
-     </item>
-    </layout>
-   </widget>
-  </widget>
-  <widget class="QDockWidget" name="dockWidget_2">
-   <attribute name="dockWidgetArea">
-    <number>8</number>
-   </attribute>
-   <widget class="QWidget" name="dockWidgetContents_2">
-    <layout class="QVBoxLayout" name="verticalLayout_3">
-     <item>
-      <widget class="Console" name="console">
-       <property name="readOnly">
-        <bool>true</bool>
-       </property>
-      </widget>
      </item>
     </layout>
    </widget>
@@ -504,8 +755,6 @@
   <tabstop>lightSampleNumber</tabstop>
   <tabstop>antialiasingResolution</tabstop>
   <tabstop>antialiasingType</tabstop>
-  <tabstop>pathDepth</tabstop>
-  <tabstop>pathSampleNumber</tabstop>
   <tabstop>imageWidth</tabstop>
   <tabstop>imageHeight</tabstop>
   <tabstop>epsilon</tabstop>

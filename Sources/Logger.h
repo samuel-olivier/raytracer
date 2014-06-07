@@ -3,6 +3,8 @@
 
 #include <QString>
 #include <QObject>
+#include <QMutex>
+#include <atomic>
 
 #define logger Logger::instance()
 
@@ -32,7 +34,26 @@ public slots:
     void        showMessage(QString const& message, int timeout = 0);
     void        clearMessage();
 
+private slots:
+    void        onRefresh();
+
 private:
+    enum StatusBarAction {
+        ClearMessage,
+        Show,
+        Status_None
+    };
+
+    enum ConsoleAction {
+        Info,
+        Debug,
+        Success,
+        Error,
+        ClearConsole,
+        Separator,
+        Console_None
+    };
+
     Logger();
     ~Logger();
 
@@ -40,6 +61,14 @@ private:
 
     Console*    _console;
     QStatusBar* _statusBar;
+
+    std::atomic<StatusBarAction>    _nextAction;
+    QMutex                          _statusMessageMutex;
+    QString                         _statusMessageString;
+    int                             _statusMessageTimeout;
+
+    QMutex                                  _consoleMutex;
+    QList<QPair<ConsoleAction, QString>>    _consoleActions;
 };
 
 #endif // LOGGER_H

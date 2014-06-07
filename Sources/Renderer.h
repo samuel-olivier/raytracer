@@ -17,6 +17,7 @@ class Scene;
 class KDTreeNode;
 class Photon;
 class PhotonMap;
+class Integrator;
 
 class Renderer : public QWidget
 {
@@ -33,6 +34,9 @@ public:
 
     Scene*  scene() const;
     void    setScene(Scene* scene);
+
+    Integrator* integrator() const;
+    void        setIntegrator(Integrator* integrator);
 
     void    render();
     void    play();
@@ -61,10 +65,11 @@ private slots:
 
 private:
 
-    void    _raytrace();
-    void    _raytraceSections();
-    void    _throwRay(Ray const& ray, Intersection &hit);
-    bool    _isShaded(QVector3D const& hitPosition, QVector3D const& toLight, QVector3D const& lightPos, float time);
+    void    _computeImage();
+    void    _computeSections();
+//    void    _pathTrace(Ray const& ray, Intersection &hit);
+//    void    _rayTrace(Ray const& ray, Intersection &hit, bool searchDiffuse = false);
+//    bool    _isShaded(QVector3D const& hitPosition, QVector3D const& toLight, QVector3D const& lightPos, float time);
     void    _setPixel(int x, int y, Color const& color);
 
     QImage  _image;
@@ -89,8 +94,10 @@ private:
     std::atomic<int>    _sampleNumber;
     QVector<Color>      _imageColors;
 
-    PhotonMap*          _globalPhotonMap;
-    PhotonMap*          _causticPhotonMap;
+    Integrator*         _integrator;
+
+//    PhotonMap*          _globalPhotonMap;
+//    PhotonMap*          _causticPhotonMap;
 };
 
 #endif // RENDERER_H

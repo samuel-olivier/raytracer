@@ -47,6 +47,7 @@ private:
     void    _loadEnvMap(Renderer* renderer);
     void    _loadRing(Renderer* renderer);
     void    _loadMusic(Renderer* renderer);
+    void    _loadRoom(Renderer* renderer);
 
     float   _rangeRand(float min,float max);
 

@@ -22,7 +22,7 @@ public:
     virtual bool    intersect(const Ray &ray, Intersection &hit);
 
 private:
-    void    _construct(QVector<Node*> const& nodes, int currentDeepness = 0);
+    void    _construct(QVector<Node*> const& nodes, int currentDeepness = 0, bool computeBoundingBox = true);
 
     BoxTreeNode*        _child1;
     BoxTreeNode*        _child2;
