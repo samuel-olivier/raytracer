@@ -35,6 +35,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(_ui->action_Save, SIGNAL(triggered()), SLOT(onSaveImage()));
     connect(_ui->action_Play_Pause, SIGNAL(triggered()), SLOT(onPlayPause()));
     connect(_ui->action_Stop, SIGNAL(triggered()), SLOT(onStop()));
+    connect(_ui->action_Reload, SIGNAL(triggered()), SLOT(onLoadScene()));
 
     connect(_ui->sceneNames, SIGNAL(currentIndexChanged(QString)), SLOT(onLoadScene()));
     connect(_ui->integrator, SIGNAL(currentTextChanged(QString)), SLOT(onIntegratorChanged()));
@@ -120,6 +121,7 @@ void MainWindow::onRenderingFinished()
 void MainWindow::onUpdateProgress()
 {
     int elaps = _ui->renderer->elapsedTime();
+    int sampleDuration = _ui->renderer->currentSampleDuration();
     QTime elapsed(0, 0, 0, 0);
     QTime mean(0, 0, 0, 0);
     int sampleNumber = _ui->renderer->sampleNumber();
@@ -128,7 +130,7 @@ void MainWindow::onUpdateProgress()
     _ui->elapsedTime->setText(elapsed.toString("hh:mm:ss.zzz"));
     _ui->sampleNumber->setText(QString::number(sampleNumber));
     if (sampleNumber > 0) {
-        mean = mean.addMSecs(elaps / sampleNumber);
+        mean = mean.addMSecs((elaps - sampleDuration) / sampleNumber);
     }
     _ui->sampleDuration->setText(mean.toString("mm:ss.zzz"));
 }

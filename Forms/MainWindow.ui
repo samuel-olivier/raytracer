@@ -72,17 +72,6 @@ QTextEdit {
       <property name="focusPolicy">
        <enum>Qt::StrongFocus</enum>
       </property>
-      <zorder>photonMappingSearchRadius</zorder>
-      <zorder>line</zorder>
-      <zorder>photonMappingRayDepth</zorder>
-      <zorder>label_21</zorder>
-      <zorder>photonMappingMapDepth</zorder>
-      <zorder>photonMappingPhotonNumber</zorder>
-      <zorder>photonMappingNearestPhotons</zorder>
-      <zorder>label_20</zorder>
-      <zorder>label_22</zorder>
-      <zorder>label_19</zorder>
-      <zorder>label_11</zorder>
      </widget>
     </item>
    </layout>
@@ -97,8 +86,9 @@ QTextEdit {
    <addaction name="action_Save"/>
    <addaction name="separator"/>
    <addaction name="action_Play_Pause"/>
-   <addaction name="separator"/>
    <addaction name="action_Stop"/>
+   <addaction name="separator"/>
+   <addaction name="action_Reload"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <widget class="QDockWidget" name="dockLeft">
@@ -730,6 +720,21 @@ QTextEdit {
    </property>
    <property name="shortcut">
     <string>Esc</string>
+   </property>
+  </action>
+  <action name="action_Reload">
+   <property name="icon">
+    <iconset resource="../ui.qrc">
+     <normaloff>:/Resources/reload.png</normaloff>:/Resources/reload.png</iconset>
+   </property>
+   <property name="text">
+    <string>Reload</string>
+   </property>
+   <property name="toolTip">
+    <string>Reload Scene</string>
+   </property>
+   <property name="shortcut">
+    <string>F5</string>
    </property>
   </action>
  </widget>

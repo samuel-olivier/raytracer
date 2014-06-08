@@ -244,6 +244,15 @@ void AssimpLoader::_loadMaterials(const aiScene *scene)
                 delete t;
             }
         }
+        if (matName == "ID9") {
+            ImageTexture* t = new ImageTexture(_baseDir + "/tex/bump.jpg");
+            qDebug() << matName;
+            if (t->hasImage()) {
+                material->setNormalMap(t);
+            } else {
+                delete t;
+            }
+        }
         Texture* alphaMap = 0;
         if (mtl->GetTexture(aiTextureType_OPACITY, 0, &path) == AI_SUCCESS) {
             ImageTexture* t = new ImageTexture(_baseDir + "/" + path.C_Str());

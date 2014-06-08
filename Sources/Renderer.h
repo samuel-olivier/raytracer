@@ -49,6 +49,7 @@ public:
     void    saveImage(QString const& filename);
 
     int     elapsedTime() const;
+    int     currentSampleDuration() const;
     int     sampleNumber() const;
 
 signals:

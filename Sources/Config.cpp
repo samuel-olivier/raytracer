@@ -247,7 +247,7 @@ Config::Config()
     _photonMappingMapDepth = 10;
     _photonMappingRayDepth = 5;
 
-    _refractionIndex = 1.0003f;
+    _refractionIndex = 1.003f;
 
     _defaultCameraVerticalFOV = 40.0f;
     _defaultCameraAspectRatio = 1.33f;

@@ -39,7 +39,7 @@ SceneGenerator* SceneGenerator::_instance = 0;
 
 SceneGenerator::SceneGenerator()
 {
-//    _scenes.append(QPair<QString, Loader>("Test", &SceneGenerator::_loadSceneTest));
+    _scenes.append(QPair<QString, Loader>("Test", &SceneGenerator::_loadSceneTest));
 
     _scenes.append(QPair<QString, Loader>("Project 1 - Cubes", &SceneGenerator::_loadProject1_Cubes));
     _scenes.append(QPair<QString, Loader>("Project 1 - Spheres", &SceneGenerator::_loadProject1_Spheres));
@@ -127,6 +127,8 @@ void SceneGenerator::_loadSceneTest(Renderer *renderer)
         Light* lgt = lights[i];
         scene->addNode(lgt);
         if (i == 0) {
+            lgt->setIntensity(200000.0f);
+       } else if (i == 1) {
             lgt->setIntensity(250000.0f);
         }
     }
@@ -142,7 +144,7 @@ void SceneGenerator::_loadSceneTest(Renderer *renderer)
             light->setTriangles(lightTris);
             light->transform(mesh->matrix());
             light->setBaseColor(Color::WHITE);
-            light->setIntensity(0.5f);
+            light->setIntensity(1.0f);
             light->setGeneratePhotons(false);
             scene->addNode(light);
         } else {
