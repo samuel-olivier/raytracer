@@ -17,3 +17,4 @@ Features :
   - AABB Tree Spatial Data Structure
   - Plane, Sphere and Triangle Primitives
   - Environment Map (Sphere Map)
+  - Photon Mapping
