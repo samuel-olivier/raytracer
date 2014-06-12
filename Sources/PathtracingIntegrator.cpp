@@ -78,7 +78,8 @@ void PathtracingIntegrator::compute(const Ray &ray, Intersection &hit)
         }
     } else {
         _scene->sky()->evaluate(ray.direction, hit.shade);
-    }}
+    }
+}
 
 Integrator::Type PathtracingIntegrator::type() const
 {

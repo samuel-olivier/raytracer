@@ -168,6 +168,7 @@ void AssimpLoader::_loadMaterials(const aiScene *scene)
         if (mtl->Get(AI_MATKEY_NAME, path) == AI_SUCCESS) {
             matName = path.C_Str();
         }
+
         if (mtl->Get(AI_MATKEY_COLOR_TRANSPARENT, transparency) == AI_SUCCESS) {
             trans = Color(transparency.r, transparency.g, transparency.b);
         }
@@ -244,15 +245,6 @@ void AssimpLoader::_loadMaterials(const aiScene *scene)
                 delete t;
             }
         }
-        if (matName == "ID9") {
-            ImageTexture* t = new ImageTexture(_baseDir + "/tex/bump.jpg");
-            qDebug() << matName;
-            if (t->hasImage()) {
-                material->setNormalMap(t);
-            } else {
-                delete t;
-            }
-        }
         Texture* alphaMap = 0;
         if (mtl->GetTexture(aiTextureType_OPACITY, 0, &path) == AI_SUCCESS) {
             ImageTexture* t = new ImageTexture(_baseDir + "/" + path.C_Str());
@@ -268,18 +260,10 @@ void AssimpLoader::_loadMaterials(const aiScene *scene)
 
 void AssimpLoader::_loadAssimpNode(const aiScene *scene, aiNode *assimpNode, int &numTriangles, QList<Instance *> &meshes, QList<Light *> &lights, Camera *camera, const QMatrix4x4 &parent)
 {
-    QMatrix4x4 mtx;
-    aiMatrix4x4 aiMtx = assimpNode->mTransformation;
-
-    mtx.setColumn(0, QVector4D(aiMtx.a1, aiMtx.b1, aiMtx.c1, aiMtx.d1));
-    mtx.setColumn(1, QVector4D(aiMtx.a2, aiMtx.b2, aiMtx.c2, aiMtx.d2));
-    mtx.setColumn(2, QVector4D(aiMtx.a3, aiMtx.b3, aiMtx.c3, aiMtx.d3));
-    mtx.setColumn(3, QVector4D(aiMtx.a4, aiMtx.b4, aiMtx.c4, aiMtx.d4));
-
+    QMatrix4x4 mtx = _toQMatrix(assimpNode->mTransformation);
     mtx = parent * mtx;
 
-
-    if (camera && QString(assimpNode->mName.C_Str()).toLower() == "camera") {
+    if (camera && scene->mNumCameras > 0 && assimpNode->mName == scene->mCameras[0]->mName) {
         camera->setMatrix(mtx);
 //        aiCamera* assimpCamera = scene->mCameras[0];
 //        camera->set(qRadiansToDegrees(assimpCamera->mHorizontalFOV) / assimpCamera->mAspect, assimpCamera->mAspect);
@@ -364,4 +348,19 @@ void AssimpLoader::_loadAssimpNode(const aiScene *scene, aiNode *assimpNode, int
     for (uint i = 0; i < assimpNode->mNumChildren; ++i) {
         _loadAssimpNode(scene, assimpNode->mChildren[i], numTriangles, meshes, lights, camera, mtx);
     }
+}
+
+QMatrix4x4 AssimpLoader::_toQMatrix(const aiMatrix4x4 &aiMtx) const
+{
+    QMatrix4x4 mtx;
+    mtx.setColumn(0, QVector4D(aiMtx.a1, aiMtx.b1, aiMtx.c1, aiMtx.d1));
+    mtx.setColumn(1, QVector4D(aiMtx.a2, aiMtx.b2, aiMtx.c2, aiMtx.d2));
+    mtx.setColumn(2, QVector4D(aiMtx.a3, aiMtx.b3, aiMtx.c3, aiMtx.d3));
+    mtx.setColumn(3, QVector4D(aiMtx.a4, aiMtx.b4, aiMtx.c4, aiMtx.d4));
+    return mtx;
+}
+
+QVector3D AssimpLoader::_toQVector(const aiVector3D &v) const
+{
+    return QVector3D(v.x, v.y, v.z);
 }

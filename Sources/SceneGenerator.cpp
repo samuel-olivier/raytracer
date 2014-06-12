@@ -39,8 +39,6 @@ SceneGenerator* SceneGenerator::_instance = 0;
 
 SceneGenerator::SceneGenerator()
 {
-    _scenes.append(QPair<QString, Loader>("Test", &SceneGenerator::_loadSceneTest));
-
     _scenes.append(QPair<QString, Loader>("Project 1 - Cubes", &SceneGenerator::_loadProject1_Cubes));
     _scenes.append(QPair<QString, Loader>("Project 1 - Spheres", &SceneGenerator::_loadProject1_Spheres));
     _scenes.append(QPair<QString, Loader>("Project 2 - 2 Dragons", &SceneGenerator::_loadProject2_2Dragons));
@@ -59,6 +57,9 @@ SceneGenerator::SceneGenerator()
     _scenes.append(QPair<QString, Loader>("Env Map", &SceneGenerator::_loadEnvMap));
     _scenes.append(QPair<QString, Loader>("Ring", &SceneGenerator::_loadRing));
     _scenes.append(QPair<QString, Loader>("Music", &SceneGenerator::_loadMusic));
+    _scenes.append(QPair<QString, Loader>("Room", &SceneGenerator::_loadRoom));
+    _scenes.append(QPair<QString, Loader>("Bottles", &SceneGenerator::_loadBottles));
+
 }
 
 SceneGenerator::~SceneGenerator()
@@ -100,73 +101,6 @@ QList<QString> SceneGenerator::scenes() const
 
 void SceneGenerator::_loadSceneTest(Renderer *renderer)
 {
-    Config::Epsilon = 0.0001f;
-    config->setPhotonMappingMaximumSearchRadius(50.0f);
-    config->setPhotonMappingNumberNearestPhoton(100.0f);
-    config->setPhotonMappingPhotonNumber(10000);
-//    config->setPhotonMaximumRadius(25.0f);
-//    config->setNumberNearestPhoton(5000.0f);
-//    config->setPhotonNumber(5000000);
-
-    Camera* camera = renderer->camera();
-    camera->set(40.0f, 1.777f);
-//    camera->setAperture(1.0f);
-//    camera->setFocalPlane(87.15381);
-//    renderer->setImageSize(1920, 1080);
-    renderer->setImageSize(800, 450);
-
-    Scene* scene = new Scene;
-//    scene->setSky(new UniformSky(Color(0.1f, 0.1f, 0.1f)));
-    scene->setSky(new SphereSky(config->sceneResourcesDir() + "/Textures/sphereMap_joshua.jpg"));
-
-    AssimpLoader loader;
-    QList<Instance*> meshes;
-    QList<Light*> lights;
-    loader.loadFile(config->sceneResourcesDir() + "Models/Bottles/Bottles.dae", meshes, lights, camera);
-    for (int i = 0; i < lights.size(); ++i) {
-        Light* lgt = lights[i];
-        scene->addNode(lgt);
-        if (i == 0) {
-            lgt->setIntensity(200000.0f);
-       } else if (i == 1) {
-            lgt->setIntensity(250000.0f);
-        }
-    }
-    QTime time;
-    time.restart();
-    QVector<Node*> tmp;
-    for (int i = 0; i < meshes.size(); ++i) {
-        Instance* mesh = meshes[i];
-        Mesh* toSet = mesh->object<Mesh>();
-        if (toSet->name().toLower().contains("light")) {
-            AreaLight* light = new AreaLight;
-            QVector<Triangle*> lightTris = toSet->triangles();
-            light->setTriangles(lightTris);
-            light->transform(mesh->matrix());
-            light->setBaseColor(Color::WHITE);
-            light->setIntensity(1.0f);
-            light->setGeneratePhotons(false);
-            scene->addNode(light);
-        } else {
-//            toSet->smooth();
-            toSet->generateTextureTangents();
-            BoxTreeNode* tree = new BoxTreeNode;
-            tree->construct(mesh->object<Mesh>());
-            Instance* treeInst = new Instance(tree);
-            treeInst->setMatrix(mesh->matrix());
-            tmp << treeInst;
-        }
-    }
-    BoxTreeNode* tree = new BoxTreeNode;
-    tree->construct(tmp);
-    Instance* all = new Instance(tree);
-    QMatrix4x4 mtx;
-    all->setMatrix(mtx);
-    scene->addNode(all);
-    logger->writeInfo(QString("Scene Construction : %1 ms").arg(QString::number(time.elapsed())));
-
-    renderer->setScene(scene);
-    renderer->setCamera(camera);
     (void)renderer;
 }
 
@@ -1414,7 +1348,8 @@ void SceneGenerator::_loadMusic(Renderer *renderer)
 void SceneGenerator::_loadRoom(Renderer *renderer)
 {
     Config::Epsilon = 0.1f;
-    config->setPhotonMappingMaximumSearchRadius(100.0f);
+    config->setPhotonMappingMaximumSearchRadius(3000.0f);
+    config->setPhotonMappingNumberNearestPhoton(500.0f);
 
     Camera* camera = renderer->camera();
     camera->set(40.0f, 1.777f);
@@ -1422,15 +1357,19 @@ void SceneGenerator::_loadRoom(Renderer *renderer)
 
     Scene* scene = new Scene;
     scene->setSky(new UniformSky(Color(0.0f, 0.0f, 0.0f)));
-//    scene->setSky(new SphereSky(config->sceneResourcesDir() + "/Textures/sphereMap_joshua.jpg"));
+    scene->setSky(new SphereSky(config->sceneResourcesDir() + "/Textures/sphereMap_joshua.jpg"));
 
     AssimpLoader loader;
     QList<Instance*> meshes;
     QList<Light*> lights;
     loader.loadFile(config->sceneResourcesDir() + "Models/Appartment/Appartment.dae", meshes, lights, camera);
+    int l = 0;
     for (Light* lgt : lights) {
-        lgt->setIntensity(2.0f);
+        if (l == 0) {
+            lgt->setIntensity(40000000.0f);
+        }
         scene->addNode(lgt);
+        ++l;
     }
     QTime time;
     time.restart();
@@ -1438,23 +1377,116 @@ void SceneGenerator::_loadRoom(Renderer *renderer)
     for (int i = 0; i < meshes.size(); ++i) {
         Instance* mesh = meshes[i];
         Mesh* toSet = mesh->object<Mesh>();
-        toSet->smooth();
-        toSet->generateTextureTangents();
+//        toSet->smooth();
+        toSet->generateTangents();
 
-        if ((i <= 35 || i >= 43)) {
+        if (toSet->name().toLower().contains("light")) {
+            AreaLight* light = new AreaLight;
+            QVector<Triangle*> lightTris = toSet->triangles();
+            light->setTriangles(lightTris);
+            light->transform(mesh->matrix());
+            light->setBaseColor(Color::WHITE);
+            if (i == 0) {
+                light->setIntensity(5.5f);
+            } else if (i == 1) {
+                light->setIntensity(200.0f);
+                light->setGeneratePhotons(false);
+            }
+            scene->addNode(light);
+        } else {
             BoxTreeNode* tree = new BoxTreeNode;
             tree->construct(mesh->object<Mesh>());
             Instance* treeInst = new Instance(tree);
             treeInst->setMatrix(mesh->matrix());
             tmp << treeInst;
+        }
+    }
+    BoxTreeNode* tree = new BoxTreeNode;
+    tree->construct(tmp);
+    Instance* all = new Instance(tree);
+    QMatrix4x4 mtx;
+    all->setMatrix(mtx);
+    scene->addNode(all);
+    logger->writeInfo(QString("Scene Construction : %1 ms").arg(QString::number(time.elapsed())));
+
+    renderer->setScene(scene);
+    renderer->setCamera(camera);
+}
+
+void SceneGenerator::_loadBottles(Renderer *renderer)
+{
+    Config::Epsilon = 0.0001f;
+    config->setPhotonMappingMaximumSearchRadius(50.0f);
+    config->setPhotonMappingNumberNearestPhoton(100.0f);
+    config->setPhotonMappingPhotonNumber(10000);
+//    config->setPhotonMaximumRadius(25.0f);
+//    config->setNumberNearestPhoton(5000.0f);
+//    config->setPhotonNumber(5000000);
+
+    Camera* camera = renderer->camera();
+    camera->set(40.0f, 1.777f);
+//    camera->setAperture(1.0f);
+//    camera->setFocalPlane(87.15381);
+//    renderer->setImageSize(1920, 1080);
+    renderer->setImageSize(800, 450);
+
+    Scene* scene = new Scene;
+    scene->setSky(new SphereSky(config->sceneResourcesDir() + "/Textures/sphereMap_joshua.jpg"));
+
+    AssimpLoader loader;
+    QList<Instance*> meshes;
+    QList<Light*> lights;
+    loader.loadFile(config->sceneResourcesDir() + "Models/Bottles/Bottles.dae", meshes, lights, camera);
+    for (int i = 0; i < lights.size(); ++i) {
+        Light* lgt = lights[i];
+        scene->addNode(lgt);
+        if (i == 0) {
+            lgt->setIntensity(200000.0f);
+       } else if (i == 1) {
+            lgt->setIntensity(250000.0f);
+        }
+    }
+    QTime time;
+    time.restart();
+    QVector<Node*> tmp;
+    for (int i = 0; i < meshes.size(); ++i) {
+        Instance* mesh = meshes[i];
+        Mesh* toSet = mesh->object<Mesh>();
+        if (toSet->name().toLower().contains("light")) {
+            AreaLight* light = new AreaLight;
+            QVector<Triangle*> lightTris = toSet->triangles();
+            light->setTriangles(lightTris);
+            light->transform(mesh->matrix());
+            light->setBaseColor(Color::WHITE);
+            light->setIntensity(1.0f);
+            light->setGeneratePhotons(false);
+            scene->addNode(light);
         } else {
-//            AreaLight* light = new AreaLight;
-//            QVector<Triangle*> lightTris = toSet->triangles();
-//            light->setTriangles(lightTris);
-//            light->transform(mesh->matrix());
-//            light->setBaseColor(Color::WHITE);
-//            light->setIntensity(50.0f);
-//            scene->addNode(light);
+            QString nMap = QString::null;
+            QString mName = toSet->material()->name();
+            if (mName == "ID9") {
+                nMap = "window.jpg";
+            } else if (mName == "ID108") {
+                nMap = "bft_NM.jpg";
+            } else if (mName == "ID32") {
+                nMap = "HC_NM.jpg";
+            } else if (mName == "ID79") {
+                nMap = "mlb_NM.jpg";
+            }
+            if (!nMap.isNull()) {
+                ImageTexture* t = new ImageTexture(config->sceneResourcesDir() + "Models/Bottles/tex/" + nMap);
+                if (t->hasImage()) {
+                    toSet->material()->setNormalMap(t);
+                } else {
+                    delete t;
+                }
+            }
+            toSet->generateTextureTangents();
+            BoxTreeNode* tree = new BoxTreeNode;
+            tree->construct(mesh->object<Mesh>());
+            Instance* treeInst = new Instance(tree);
+            treeInst->setMatrix(mesh->matrix());
+            tmp << treeInst;
         }
     }
     BoxTreeNode* tree = new BoxTreeNode;

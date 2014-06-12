@@ -37,7 +37,7 @@ void SpotLight::sampleRay(Ray &newRay, float &intensity, Color &color) const
     } while (newRay.direction.lengthSquared() > 1 || angle > _outerAngle * 0.5f);
     newRay.origin = _position;
     newRay.direction.normalize();
-    intensity = this->intensity();
+    intensity = this->intensity() * _outerAngle / (M_PI);
     color = baseColor();
 }
 

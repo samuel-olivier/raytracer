@@ -130,7 +130,7 @@ void Material::ashikhmin(const QVector3D &k1, const QVector3D &k2, const QVector
     float Ps1 = qSqrt((rU + 1) * (rV + 1)) / (8.0f * M_PI);
     float Ps2 = qPow(nh, ((rU * hu * hu + rV * hv * hv) / (1.0f - nh * nh))) / (kh * qMax(nk1, nk2));
     Ps = qMin(24.0f, Ps1 * Ps2 * F);
-    if (Ps != Ps) {
+    if (s == 0.0f || Ps != Ps) {
         Ps = 0.0f;
     }
 

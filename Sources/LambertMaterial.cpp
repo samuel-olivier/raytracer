@@ -33,10 +33,10 @@ void LambertMaterial::setDiffuseColor(const Color &diffuseColor)
     }
 }
 
-void LambertMaterial::computeReflectance(Color &col, const QVector3D &in, const Ray &, const Intersection &hit) const
+void LambertMaterial::computeReflectance(Color &col, const QVector3D &, const Ray &, const Intersection &hit) const
 {
     _diffuseColor->evaluateColor(hit.texCoord, col);
-    col.Scale(1.0f / M_PI);
+    col.Scale(1.0f / float(M_PI));
 }
 
 bool LambertMaterial::sampleRay(const Ray &, const Intersection &hit, Ray &newRay, Color &intensity) const
